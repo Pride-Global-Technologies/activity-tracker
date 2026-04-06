@@ -208,7 +208,7 @@ tfoot td{padding:9px 12px;border-top:1px solid var(--border);font-family:'Syne',
       </div>
       <div style="margin-bottom:10px;">
         <label class="flabel">Comments / Notes</label>
-        <input type="text" id="comments-inp" placeholder="Optional notes..." style="width:100%"/>
+        <input type="text" id="comments-inp" placeholder="Add comments here (Required)..." style="width:100%"/>
       </div>
       <div class="brow">
         <button class="bstart" id="btn-start" onclick="startAct()" disabled>▶ Start Activity</button>
@@ -510,7 +510,10 @@ function launch(name,team){
 function lockGrid(){document.getElementById('agrid').classList.add('locked');document.getElementById('run-warn').classList.add('show');}
 function unlockGrid(){document.getElementById('agrid').classList.remove('locked');document.getElementById('run-warn').classList.remove('show');}
 function logout(){
-  if(st.running)stopAct();
+  if(st.running){
+    stopAct();
+    if(st.running) return;
+  }
   clearInterval(st.tiv);
   localStorage.removeItem(SK);
   st={name:'',team:'',sid:'',idx:null,running:false,startTs:null,tiv:null,logs:[],activeLog:null,picked:null,pickedTeam:'',fActs:[]};
@@ -559,10 +562,14 @@ function startAct(){
 }
 function stopAct(){
   if(!st.running)return;
+  const comments=document.getElementById('comments-inp').value.trim();
+  if(!comments){
+    showToast('⚠ Please add comments before stopping!');
+    return;
+  }
   clearInterval(st.tiv);st.running=false;
   const endTs=Date.now(),elapsed=Math.floor((endTs-st.startTs)/1000),endStr=estNow();
   const count=parseInt(document.getElementById('count-inp').value)||0;
-  const comments=document.getElementById('comments-inp').value.trim();
   document.getElementById('end-disp').value=endStr;
   document.getElementById('timer').classList.remove('run');
   document.getElementById('btn-stop').disabled=true;
