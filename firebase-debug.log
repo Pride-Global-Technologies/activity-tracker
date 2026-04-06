@@ -1,0 +1,316 @@
+[debug] [2026-04-06T06:26:39.692Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T06:26:39.703Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Fazy Flower Florita\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting:github
+[debug] [2026-04-06T06:26:39.704Z] CLI Version:   15.10.1
+[debug] [2026-04-06T06:26:39.705Z] Platform:      win32
+[debug] [2026-04-06T06:26:39.705Z] Node Version:  v24.14.0
+[debug] [2026-04-06T06:26:39.706Z] Time:          Mon Apr 06 2026 11:56:39 GMT+0530 (India Standard Time)
+[debug] [2026-04-06T06:26:39.706Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-04-06T06:27:07.948Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T06:27:07.950Z] > authorizing via signed-in user (fazyflowerflorita@gmail.com)
+[debug] [2026-04-06T06:27:07.955Z] Checked if tokens are valid: false, expires at: 1774649663230
+[debug] [2026-04-06T06:27:07.956Z] Checked if tokens are valid: false, expires at: 1774649663230
+[debug] [2026-04-06T06:27:07.957Z] > refreshing access token with scopes: []
+[debug] [2026-04-06T06:27:07.965Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2026-04-06T06:27:07.965Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-06T06:27:08.208Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2026-04-06T06:27:08.209Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2026-04-06T06:27:08.236Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a [none]
+[debug] [2026-04-06T06:27:08.648Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a 200
+[debug] [2026-04-06T06:27:08.650Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a {"projectId":"activity-tracker-40c7a","projectNumber":"126687788390","displayName":"Activity-Tracker","name":"projects/activity-tracker-40c7a","resources":{"hostingSite":"activity-tracker-40c7a","realtimeDatabaseInstance":"activity-tracker-40c7a-default-rtdb"},"state":"ACTIVE","etag":"1_2745a823-d894-4baf-8d0d-01b7ce54a5f1"}
+[info] i  Using project activity-tracker-40c7a (Activity-Tracker) . 
+[info] 
+=== Hosting:github Setup
+[info] 
+[info] i  Didn't detect a .git folder. Assuming C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker is the project root. 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=1015324176&redirect_uri=http%3A%2F%2Flocalhost%3A9006&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2026-04-06T06:27:10.207Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2026-04-06T06:27:10.208Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2026-04-06T06:27:10.648Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2026-04-06T06:27:10.649Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2026-04-06T06:27:10.666Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2026-04-06T06:27:11.106Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2026-04-06T06:27:11.108Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"fazyflowerflorita","id":124234836,"node_id":"U_kgDOB2esVA","avatar_url":"https://avatars.githubusercontent.com/u/124234836?v=4","gravatar_id":"","url":"https://api.github.com/users/fazyflowerflorita","html_url":"https://github.com/fazyflowerflorita","followers_url":"https://api.github.com/users/fazyflowerflorita/followers","following_url":"https://api.github.com/users/fazyflowerflorita/following{/other_user}","gists_url":"https://api.github.com/users/fazyflowerflorita/gists{/gist_id}","starred_url":"https://api.github.com/users/fazyflowerflorita/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/fazyflowerflorita/subscriptions","organizations_url":"https://api.github.com/users/fazyflowerflorita/orgs","repos_url":"https://api.github.com/users/fazyflowerflorita/repos","events_url":"https://api.github.com/users/fazyflowerflorita/events{/privacy}","received_events_url":"https://api.github.com/users/fazyflowerflorita/received_events","type":"User","user_view_type":"private","site_admin":false,"name":null,"company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":0,"public_gists":0,"followers":0,"following":0,"created_at":"2023-02-02T05:39:33Z","updated_at":"2024-09-18T17:42:53Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":0,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] +  Success! Logged into GitHub as fazyflowerflorita 
+[info] 
+[debug] [2026-04-06T06:27:47.131Z] >>> [apiv2][query] GET https://api.github.com/repos/repository/actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:27:47.472Z] <<< [apiv2][status] GET https://api.github.com/repos/repository/actions/secrets/public-key 404
+[debug] [2026-04-06T06:27:47.473Z] <<< [apiv2][body] GET https://api.github.com/repos/repository/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:30:50.806Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\Fazy Flower Florita\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:508:28)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1327:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:284:20)
+    at ReadStream.emit (node:events:520:35)
+    at emitKeys (node:internal/readline/utils:371:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+    at ReadStream.emit (node:events:508:28)
+    at addChunk (node:internal/streams/readable:563:12)
+[error] 
+[error] Error: An unexpected error has occurred.
+[debug] [2026-04-06T06:31:48.169Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T06:31:48.180Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Fazy Flower Florita\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting:github
+[debug] [2026-04-06T06:31:48.182Z] CLI Version:   15.10.1
+[debug] [2026-04-06T06:31:48.182Z] Platform:      win32
+[debug] [2026-04-06T06:31:48.183Z] Node Version:  v24.14.0
+[debug] [2026-04-06T06:31:48.183Z] Time:          Mon Apr 06 2026 12:01:48 GMT+0530 (India Standard Time)
+[debug] [2026-04-06T06:31:48.184Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-04-06T06:32:08.717Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T06:32:08.720Z] > authorizing via signed-in user (fazyflowerflorita@gmail.com)
+[debug] [2026-04-06T06:32:08.729Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T06:32:08.730Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T06:32:08.735Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a [none]
+[debug] [2026-04-06T06:32:09.298Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a 200
+[debug] [2026-04-06T06:32:09.299Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a {"projectId":"activity-tracker-40c7a","projectNumber":"126687788390","displayName":"Activity-Tracker","name":"projects/activity-tracker-40c7a","resources":{"hostingSite":"activity-tracker-40c7a","realtimeDatabaseInstance":"activity-tracker-40c7a-default-rtdb"},"state":"ACTIVE","etag":"1_2745a823-d894-4baf-8d0d-01b7ce54a5f1"}
+[info] i  Using project activity-tracker-40c7a (Activity-Tracker) . 
+[info] 
+=== Hosting:github Setup
+[info] 
+[info] i  Didn't detect a .git folder. Assuming C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker is the project root. 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=580904687&redirect_uri=http%3A%2F%2Flocalhost%3A9006&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2026-04-06T06:32:10.677Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2026-04-06T06:32:10.677Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2026-04-06T06:32:11.100Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2026-04-06T06:32:11.101Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2026-04-06T06:32:11.111Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2026-04-06T06:32:11.555Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2026-04-06T06:32:11.556Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"fazyflowerflorita","id":124234836,"node_id":"U_kgDOB2esVA","avatar_url":"https://avatars.githubusercontent.com/u/124234836?v=4","gravatar_id":"","url":"https://api.github.com/users/fazyflowerflorita","html_url":"https://github.com/fazyflowerflorita","followers_url":"https://api.github.com/users/fazyflowerflorita/followers","following_url":"https://api.github.com/users/fazyflowerflorita/following{/other_user}","gists_url":"https://api.github.com/users/fazyflowerflorita/gists{/gist_id}","starred_url":"https://api.github.com/users/fazyflowerflorita/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/fazyflowerflorita/subscriptions","organizations_url":"https://api.github.com/users/fazyflowerflorita/orgs","repos_url":"https://api.github.com/users/fazyflowerflorita/repos","events_url":"https://api.github.com/users/fazyflowerflorita/events{/privacy}","received_events_url":"https://api.github.com/users/fazyflowerflorita/received_events","type":"User","user_view_type":"private","site_admin":false,"name":null,"company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":0,"public_gists":0,"followers":0,"following":0,"created_at":"2023-02-02T05:39:33Z","updated_at":"2024-09-18T17:42:53Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":0,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] +  Success! Logged into GitHub as fazyflowerflorita 
+[info] 
+[debug] [2026-04-06T06:33:03.864Z] >>> [apiv2][query] GET https://api.github.com/repos/user/actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:33:04.207Z] <<< [apiv2][status] GET https://api.github.com/repos/user/actions/secrets/public-key 404
+[debug] [2026-04-06T06:33:04.208Z] <<< [apiv2][body] GET https://api.github.com/repos/user/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:33:43.816Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:33:44.264Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2026-04-06T06:33:44.265Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:33:46.196Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:33:46.512Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2026-04-06T06:33:46.513Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:33:47.913Z] >>> [apiv2][query] GET https://api.github.com/repos//actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:33:48.230Z] <<< [apiv2][status] GET https://api.github.com/repos//actions/secrets/public-key 404
+[debug] [2026-04-06T06:33:48.231Z] <<< [apiv2][body] GET https://api.github.com/repos//actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:34:03.179Z] >>> [apiv2][query] GET https://api.github.com/repos/./actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:34:03.515Z] <<< [apiv2][status] GET https://api.github.com/repos/./actions/secrets/public-key 404
+[debug] [2026-04-06T06:34:03.516Z] <<< [apiv2][body] GET https://api.github.com/repos/./actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T06:39:47.941Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T06:39:47.953Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Fazy Flower Florita\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting:github
+[debug] [2026-04-06T06:39:47.956Z] CLI Version:   15.10.1
+[debug] [2026-04-06T06:39:47.956Z] Platform:      win32
+[debug] [2026-04-06T06:39:47.957Z] Node Version:  v24.14.0
+[debug] [2026-04-06T06:39:47.958Z] Time:          Mon Apr 06 2026 12:09:47 GMT+0530 (India Standard Time)
+[debug] [2026-04-06T06:39:47.958Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-04-06T06:43:34.643Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T06:43:34.644Z] > authorizing via signed-in user (fazyflowerflorita@gmail.com)
+[debug] [2026-04-06T06:43:34.650Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T06:43:34.650Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T06:43:34.656Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a [none]
+[debug] [2026-04-06T06:43:36.018Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a 200
+[debug] [2026-04-06T06:43:36.019Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a {"projectId":"activity-tracker-40c7a","projectNumber":"126687788390","displayName":"Activity-Tracker","name":"projects/activity-tracker-40c7a","resources":{"hostingSite":"activity-tracker-40c7a","realtimeDatabaseInstance":"activity-tracker-40c7a-default-rtdb"},"state":"ACTIVE","etag":"1_2745a823-d894-4baf-8d0d-01b7ce54a5f1"}
+[info] i  Using project activity-tracker-40c7a (Activity-Tracker) . 
+[info] 
+=== Hosting:github Setup
+[info] 
+[info] i  Didn't detect a .git folder. Assuming C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker is the project root. 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=100587024&redirect_uri=http%3A%2F%2Flocalhost%3A9005&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2026-04-06T06:43:37.380Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2026-04-06T06:43:37.381Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2026-04-06T06:43:37.796Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2026-04-06T06:43:37.797Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2026-04-06T06:43:37.811Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2026-04-06T06:43:38.234Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2026-04-06T06:43:38.235Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"fazyflowerflorita","id":124234836,"node_id":"U_kgDOB2esVA","avatar_url":"https://avatars.githubusercontent.com/u/124234836?v=4","gravatar_id":"","url":"https://api.github.com/users/fazyflowerflorita","html_url":"https://github.com/fazyflowerflorita","followers_url":"https://api.github.com/users/fazyflowerflorita/followers","following_url":"https://api.github.com/users/fazyflowerflorita/following{/other_user}","gists_url":"https://api.github.com/users/fazyflowerflorita/gists{/gist_id}","starred_url":"https://api.github.com/users/fazyflowerflorita/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/fazyflowerflorita/subscriptions","organizations_url":"https://api.github.com/users/fazyflowerflorita/orgs","repos_url":"https://api.github.com/users/fazyflowerflorita/repos","events_url":"https://api.github.com/users/fazyflowerflorita/events{/privacy}","received_events_url":"https://api.github.com/users/fazyflowerflorita/received_events","type":"User","user_view_type":"private","site_admin":false,"name":null,"company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":0,"public_gists":0,"followers":0,"following":0,"created_at":"2023-02-02T05:39:33Z","updated_at":"2024-09-18T17:42:53Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":0,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] +  Success! Logged into GitHub as fazyflowerflorita 
+[info] 
+[debug] [2026-04-06T06:45:27.830Z] >>> [apiv2][query] GET https://api.github.com/repos/fazyflowerflorita/activity-tracker/actions/secrets/public-key type=owner
+[debug] [2026-04-06T06:45:28.251Z] <<< [apiv2][status] GET https://api.github.com/repos/fazyflowerflorita/activity-tracker/actions/secrets/public-key 404
+[debug] [2026-04-06T06:45:28.252Z] <<< [apiv2][body] GET https://api.github.com/repos/fazyflowerflorita/activity-tracker/actions/secrets/public-key {"message":"Not Found","documentation_url":"https://docs.github.com/rest/actions/secrets#get-a-repository-public-key","status":"404"}
+[info] 
+[info] 
+[error] !  The provided authorization cannot be used with this repository. If this repository is in an organization, did you remember to grant access? 
+[info] 
+[info] i  Action required: Visit this URL to ensure access has been granted to the appropriate organization(s) for the Firebase CLI GitHub OAuth App: 
+[info] https://github.com/settings/connections/applications/89cf50f02ac6aaed3484
+[info] 
+[debug] [2026-04-06T07:10:04.906Z] ----------------------------------------------------------------------
+[debug] [2026-04-06T07:10:04.922Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Fazy Flower Florita\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js init hosting:github
+[debug] [2026-04-06T07:10:04.924Z] CLI Version:   15.10.1
+[debug] [2026-04-06T07:10:04.925Z] Platform:      win32
+[debug] [2026-04-06T07:10:04.926Z] Node Version:  v24.14.0
+[debug] [2026-04-06T07:10:04.926Z] Time:          Mon Apr 06 2026 12:40:04 GMT+0530 (India Standard Time)
+[debug] [2026-04-06T07:10:04.927Z] ----------------------------------------------------------------------
+[debug] 
+[info] 
+     ######## #### ########  ######## ########     ###     ######  ########
+     ##        ##  ##     ## ##       ##     ##  ##   ##  ##       ##
+     ######    ##  ########  ######   ########  #########  ######  ######
+     ##        ##  ##    ##  ##       ##     ## ##     ##       ## ##
+     ##       #### ##     ## ######## ########  ##     ##  ######  ########
+
+You're about to initialize a Firebase project in this directory:
+
+  C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker
+
+Before we get started, keep in mind:
+
+  * You are initializing within an existing Firebase project directory
+
+[info] 
+=== Project Setup
+[info] 
+[info] First, let's associate this project directory with a Firebase project.
+[info] You can create multiple project aliases by running firebase use --add, 
+[info] 
+[debug] [2026-04-06T07:10:19.406Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2026-04-06T07:10:19.407Z] > authorizing via signed-in user (fazyflowerflorita@gmail.com)
+[debug] [2026-04-06T07:10:19.414Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T07:10:19.417Z] Checked if tokens are valid: true, expires at: 1775460427209
+[debug] [2026-04-06T07:10:19.423Z] >>> [apiv2][query] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a [none]
+[debug] [2026-04-06T07:10:19.985Z] <<< [apiv2][status] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a 200
+[debug] [2026-04-06T07:10:19.986Z] <<< [apiv2][body] GET https://firebase.googleapis.com/v1beta1/projects/activity-tracker-40c7a {"projectId":"activity-tracker-40c7a","projectNumber":"126687788390","displayName":"Activity-Tracker","name":"projects/activity-tracker-40c7a","resources":{"hostingSite":"activity-tracker-40c7a","realtimeDatabaseInstance":"activity-tracker-40c7a-default-rtdb"},"state":"ACTIVE","etag":"1_2745a823-d894-4baf-8d0d-01b7ce54a5f1"}
+[info] i  Using project activity-tracker-40c7a (Activity-Tracker) . 
+[info] 
+=== Hosting:github Setup
+[info] 
+[info] i  Detected a .git folder at C:\Users\Fazy Flower Florita\OneDrive\Documents\Activity Tracker 
+[info] i  Authorizing with GitHub to upload your service account to a GitHub repository's secrets store. 
+[info] 
+[info] Visit this URL on this device to log in:
+[info] https://github.com/login/oauth/authorize?client_id=89cf50f02ac6aaed3484&state=503226135&redirect_uri=http%3A%2F%2Flocalhost%3A9005&scope=read%3Auser%20repo%20public_repo
+[info] 
+[info] Waiting for authentication...
+[debug] [2026-04-06T07:10:21.948Z] >>> [apiv2][query] POST https://github.com/login/oauth/access_token [none]
+[debug] [2026-04-06T07:10:21.948Z] >>> [apiv2][body] POST https://github.com/login/oauth/access_token [stream]
+[debug] [2026-04-06T07:10:22.471Z] <<< [apiv2][status] POST https://github.com/login/oauth/access_token 200
+[debug] [2026-04-06T07:10:22.473Z] <<< [apiv2][body] POST https://github.com/login/oauth/access_token {"access_token":"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","token_type":"bearer","scope":"read:user,repo"}
+[debug] [2026-04-06T07:10:22.488Z] >>> [apiv2][query] GET https://api.github.com/user [none]
+[debug] [2026-04-06T07:10:22.950Z] <<< [apiv2][status] GET https://api.github.com/user 200
+[debug] [2026-04-06T07:10:22.951Z] <<< [apiv2][body] GET https://api.github.com/user {"login":"fazyflowerflorita","id":124234836,"node_id":"U_kgDOB2esVA","avatar_url":"https://avatars.githubusercontent.com/u/124234836?v=4","gravatar_id":"","url":"https://api.github.com/users/fazyflowerflorita","html_url":"https://github.com/fazyflowerflorita","followers_url":"https://api.github.com/users/fazyflowerflorita/followers","following_url":"https://api.github.com/users/fazyflowerflorita/following{/other_user}","gists_url":"https://api.github.com/users/fazyflowerflorita/gists{/gist_id}","starred_url":"https://api.github.com/users/fazyflowerflorita/starred{/owner}{/repo}","subscriptions_url":"https://api.github.com/users/fazyflowerflorita/subscriptions","organizations_url":"https://api.github.com/users/fazyflowerflorita/orgs","repos_url":"https://api.github.com/users/fazyflowerflorita/repos","events_url":"https://api.github.com/users/fazyflowerflorita/events{/privacy}","received_events_url":"https://api.github.com/users/fazyflowerflorita/received_events","type":"User","user_view_type":"private","site_admin":false,"name":null,"company":null,"blog":"","location":null,"email":null,"hireable":null,"bio":null,"twitter_username":null,"notification_email":null,"public_repos":0,"public_gists":0,"followers":0,"following":0,"created_at":"2023-02-02T05:39:33Z","updated_at":"2024-09-18T17:42:53Z","private_gists":0,"total_private_repos":0,"owned_private_repos":0,"disk_usage":0,"collaborators":0,"two_factor_authentication":false,"plan":{"name":"free","space":976562499,"collaborators":0,"private_repos":10000}}
+[info] 
+[info] +  Success! Logged into GitHub as fazyflowerflorita 
+[info] 
