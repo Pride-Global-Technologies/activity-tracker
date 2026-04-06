@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Data Migration – Activity Tracker</title>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:#06080d;color:#e8eaf0;font-family:'Courier New',monospace;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px;}
+.card{background:#111620;border:1px solid #1e2533;border-radius:14px;padding:32px;width:100%;max-width:700px;box-shadow:0 20px 60px rgba(0,0,0,.5);}
+h1{font-size:1.3rem;font-weight:700;color:#0088ff;margin-bottom:6px;}
+.sub{color:#5b6478;font-size:.78rem;margin-bottom:24px;}
+.btn{background:#0088ff;color:#000;border:none;padding:13px 28px;border-radius:8px;font-size:.9rem;font-weight:700;cursor:pointer;transition:all .2s;width:100%;font-family:'Courier New',monospace;}
+.btn:hover{background:#3399ff;}
+.btn:disabled{opacity:.4;cursor:not-allowed;}
+.btn.done{background:#00e5a0;}
+.progress-wrap{margin-top:20px;display:none;}
+.progress-track{background:#1e2533;border-radius:99px;height:10px;overflow:hidden;margin:10px 0;}
+.progress-fill{height:100%;background:linear-gradient(90deg,#0088ff,#00e5a0);border-radius:99px;transition:width .3s ease;width:0%;}
+.log-box{background:#0d1117;border:1px solid #1e2533;border-radius:8px;padding:14px;max-height:320px;overflow-y:auto;font-size:.72rem;line-height:1.8;margin-top:14px;}
+.log-line{padding:2px 0;border-bottom:1px solid rgba(30,37,51,.5);}
+.log-line:last-child{border-bottom:none;}
+.ok{color:#00e5a0;}.warn{color:#ffaa00;}.err{color:#ff4466;}.info{color:#5b6478;}.blue{color:#0088ff;}
+.stat-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:18px;}
+.stat{background:#0d1117;border:1px solid #1e2533;border-radius:8px;padding:12px;text-align:center;}
+.stat-val{font-size:1.4rem;font-weight:700;font-family:sans-serif;}
+.stat-lbl{font-size:.6rem;color:#5b6478;text-transform:uppercase;letter-spacing:1px;margin-top:3px;}
+.done-box{display:none;margin-top:18px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.3);border-radius:8px;padding:14px;text-align:center;color:#00e5a0;font-size:.85rem;}
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>📦 Activity Tracker — Data Migration</h1>
+  <p class="sub">This tool migrates all old associate data from <code style="color:#0088ff">associates/</code> to the correct team paths <code style="color:#0088ff">hrops/associates/</code> and <code style="color:#a855f7">onboarding/associates/</code>.<br/>Open this page once, click the button, and all your historical data will be restored.</p>
+
+  <div class="stat-row" id="stat-row" style="display:none">
+    <div class="stat"><div class="stat-val ok" id="s-found">0</div><div class="stat-lbl">Associates Found</div></div>
+    <div class="stat"><div class="stat-val blue" id="s-logs">0</div><div class="stat-lbl">Logs Migrated</div></div>
+    <div class="stat"><div class="stat-val warn" id="s-skip">0</div><div class="stat-lbl">Already Existed</div></div>
+    <div class="stat"><div class="stat-val err" id="s-err">0</div><div class="stat-lbl">Errors</div></div>
+  </div>
+
+  <div class="progress-wrap" id="progress-wrap">
+    <div style="display:flex;justify-content:space-between;font-size:.72rem;color:#5b6478;margin-bottom:4px;">
+      <span id="prog-label">Starting...</span>
+      <span id="prog-pct">0%</span>
+    </div>
+    <div class="progress-track"><div class="progress-fill" id="prog-fill"></div></div>
+    <div class="log-box" id="log-box"></div>
+  </div>
+
+  <div class="done-box" id="done-box">
+    ✅ Migration Complete! All old data has been moved to the correct team paths.<br/>
+    <span style="font-size:.75rem;color:#5b6478;margin-top:6px;display:block">You can now close this page and refresh your manager/lead dashboards to see all historical data.</span>
+  </div>
+
+  <button class="btn" id="start-btn" onclick="startMigration()" style="margin-top:20px">🚀 Start Migration</button>
+</div>
+
+<script>
+const FB={apiKey:"AIzaSyD2Mn6TRxTs1umzd1MDvurt3FkVeD1vVho",authDomain:"activity-tracker-40c7a.firebaseapp.com",databaseURL:"https://activity-tracker-40c7a-default-rtdb.firebaseio.com",projectId:"activity-tracker-40c7a",storageBucket:"activity-tracker-40c7a.firebasestorage.app",messagingSenderId:"126687788390",appId:"1:126687788390:web:36e66214b0137f78395ca7"};
+
+let db;
+window.onload=function(){
+  firebase.initializeApp(FB);
+  db=firebase.database();
+};
+
+const HROPS=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
+const ONBOARDING=['Aathirai Arumugam','Annie Hronec','Caio Silva','Cheyselle Cuaresma','Hanna Mae Ontong Pagdato','Karen Rodriguez','Luv Arora','Pooja Tripathi','Shubham Shyam','Sofia Romjin Orial','Sunil Kumar Muniraj','Victoria Isabel Busaco','Victoria Sousa'];
+
+let totalLogs=0, skipped=0, errors=0, assocCount=0;
+
+function log(msg, cls='info'){
+  const box=document.getElementById('log-box');
+  const line=document.createElement('div');
+  line.className='log-line '+cls;
+  line.textContent=new Date().toLocaleTimeString()+' — '+msg;
+  box.appendChild(line);
+  box.scrollTop=box.scrollHeight;
+}
+
+function setProgress(current, total, label){
+  const pct=total>0?Math.round(current/total*100):0;
+  document.getElementById('prog-fill').style.width=pct+'%';
+  document.getElementById('prog-pct').textContent=pct+'%';
+  document.getElementById('prog-label').textContent=label;
+}
+
+function updateStats(){
+  document.getElementById('s-found').textContent=assocCount;
+  document.getElementById('s-logs').textContent=totalLogs;
+  document.getElementById('s-skip').textContent=skipped;
+  document.getElementById('s-err').textContent=errors;
+}
+
+async function startMigration(){
+  const btn=document.getElementById('start-btn');
+  btn.disabled=true;
+  btn.textContent='⏳ Migrating...';
+  document.getElementById('progress-wrap').style.display='block';
+  document.getElementById('stat-row').style.display='grid';
+
+  log('Reading data from associates/ path...','info');
+
+  try{
+    // Read ALL data from root associates path
+    const snap=await db.ref('associates').once('value');
+    const oldData=snap.val();
+
+    if(!oldData){
+      log('No data found at associates/ path. Nothing to migrate.','warn');
+      btn.textContent='✅ Nothing to Migrate';
+      btn.className='btn done';
+      btn.disabled=false;
+      return;
+    }
+
+    const keys=Object.keys(oldData);
+    assocCount=keys.length;
+    log(`Found ${keys.length} associates in old path.`,'ok');
+    updateStats();
+
+    let processed=0;
+    for(const [key, data] of Object.entries(oldData)){
+      const name=(data.meta&&data.meta.name)||key.replace(/_/g,' ');
+      processed++;
+
+      // Determine team
+      let team='hrops';
+      if(ONBOARDING.some(n=>n.toLowerCase()===name.toLowerCase())){
+        team='onboarding';
+      }
+
+      setProgress(processed, keys.length, `Migrating ${name}...`);
+      log(`[${processed}/${keys.length}] ${name} → ${team==='hrops'?'HR Ops':'Onboarding'}`, 'blue');
+
+      const newBasePath=team+'/associates/'+key;
+
+      // Migrate META
+      if(data.meta){
+        try{
+          await db.ref(newBasePath+'/meta').set({...data.meta, team});
+          log(`  ✓ Meta copied`,'ok');
+        }catch(e){
+          log(`  ✗ Meta failed: ${e.message}`,'err');
+          errors++;
+        }
+      }
+
+      // Migrate ACTIVE session
+      if(data.active){
+        try{
+          await db.ref(newBasePath+'/active').set({...data.active, team});
+          log(`  ✓ Active session copied`,'ok');
+        }catch(e){
+          log(`  ✗ Active failed: ${e.message}`,'err');
+          errors++;
+        }
+      }
+
+      // Migrate LOGS
+      if(data.logs){
+        const logEntries=Object.entries(data.logs);
+        log(`  Copying ${logEntries.length} logs...`,'info');
+
+        // Get existing logs at new path to avoid duplicates
+        let existingLogs={};
+        try{
+          const existSnap=await db.ref(newBasePath+'/logs').once('value');
+          existingLogs=existSnap.val()||{};
+        }catch(e){}
+
+        let assocMigrated=0;
+        for(const [logKey, logEntry] of logEntries){
+          if(existingLogs[logKey]){
+            skipped++;
+          } else {
+            try{
+              await db.ref(newBasePath+'/logs/'+logKey).set({...logEntry, team});
+              totalLogs++;
+              assocMigrated++;
+            }catch(e){
+              log(`  ✗ Log ${logKey} failed: ${e.message}`,'err');
+              errors++;
+            }
+          }
+        }
+        if(assocMigrated>0) log(`  ✓ ${assocMigrated} logs migrated successfully`,'ok');
+        if(skipped>0) log(`  ℹ ${skipped} logs already existed (skipped)`,'info');
+      } else {
+        log(`  ℹ No logs found for this associate`,'info');
+      }
+
+      updateStats();
+      // Small pause to avoid overwhelming Firebase
+      await new Promise(r=>setTimeout(r,200));
+    }
+
+    setProgress(keys.length, keys.length, 'Migration complete!');
+    log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,'info');
+    log(`✅ MIGRATION COMPLETE`,'ok');
+    log(`   Associates processed : ${assocCount}`,'ok');
+    log(`   Logs migrated        : ${totalLogs}`,'ok');
+    log(`   Already existed      : ${skipped}`,'ok');
+    log(`   Errors               : ${errors}`,'ok');
+    log(`━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━`,'info');
+
+    document.getElementById('done-box').style.display='block';
+    btn.textContent='✅ Migration Complete';
+    btn.className='btn done';
+    btn.disabled=false;
+
+  }catch(e){
+    log(`❌ Fatal error: ${e.message}`,'err');
+    btn.textContent='❌ Migration Failed — Try Again';
+    btn.disabled=false;
+  }
+}
+</script>
+</body>
+</html>

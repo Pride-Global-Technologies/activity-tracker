@@ -1,0 +1,59 @@
+
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Home</title>
+
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
+
+
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyD2Mn6TRxTs1umzd1MDvurt3FkVeD1vVho",
+  authDomain: "activity-tracker-40c7a.firebaseapp.com",
+  databaseURL: "https://activity-tracker-40c7a-default-rtdb.firebaseio.com",
+  projectId: "activity-tracker-40c7a",
+  storageBucket: "activity-tracker-40c7a.firebasestorage.app",
+  messagingSenderId: "126687788390",
+  appId: "1:126687788390:web:36e66214b0137f78395ca7",
+  measurementId: "G-RBCLS50YZY"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// REALTIME SYNC
+db.ref('team').on('value', snap => {
+  const data = snap.val() || {};
+  console.log("LIVE DATA:", data);
+});
+</script>
+
+
+</head>
+<body>
+<h1>Home</h1>
+
+<input id="name" placeholder="Enter name"/>
+<button onclick="add()">Add to HR Ops</button>
+
+<script>
+function add(){
+  const name = document.getElementById('name').value;
+  if(!name) return alert("Enter name");
+  db.ref('team/hrops/' + name).set(true);
+}
+
+function remove(name){
+  db.ref('team/hrops/' + name).remove();
+}
+</script>
+
+</body>
+</html>
