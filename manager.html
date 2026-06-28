@@ -2,15 +2,13 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 <title>Manager Dashboard – Activity Tracker</title>
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="shared-access.js"></script>
 <style>
 :root{--bg:#06080d;--surface:#0d1117;--card:#111620;--border:#1e2533;--accent:#00e5a0;--a2:#0088ff;--red:#ff4466;--warn:#ffaa00;--purple:#a855f7;--text:#e8eaf0;--muted:#5b6478;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -62,7 +60,7 @@ tbody tr{border-bottom:1px solid rgba(30,37,51,.7);}
 tbody tr:hover{background:rgba(255,255,255,.02);}
 tbody td{padding:8px 12px;white-space:nowrap;}
 tfoot td{padding:9px 12px;border-top:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:600;}
-.sg{color:var(--accent);font-weight:500;}.sr{color:var(--red);font-weight:500;}
+.sg{color:var(--accent);font-weight:500;}.sr{color:var(--red);font-weight:500;}.sw{color:var(--warn);font-weight:500;}
 .tg{color:var(--accent);}.tr{color:var(--red);}
 .rbadge2{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);padding:1px 7px;border-radius:3px;font-size:.59rem;}
 .blink{animation:bl 1s step-end infinite;}
@@ -76,7 +74,17 @@ tfoot td{padding:9px 12px;border-top:1px solid var(--border);font-family:'Syne',
 .pdot.idle{background:var(--muted);animation:none;}
 .pname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
 .ptimer{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;white-space:nowrap;}
-.pgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;}
+
+.pgrid{
+  display:grid !important;
+  grid-template-columns:repeat(4,1fr) !important;
+  gap:12px !important;
+}
+.pgrid > .pc{
+  width:100% !important;
+  min-width:0 !important;
+}
+
 .pc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px;}
 .pc.top{border-left:3px solid var(--accent);}.pc.low{border-left:3px solid var(--red);}
 .ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
@@ -131,8 +139,6 @@ textarea:focus{border-color:var(--accent);}
 .team-btn.active{background:rgba(0,229,160,.1);border-color:var(--accent);color:var(--accent);}
 .team-btn.hrops.active{background:rgba(0,136,255,.1);border-color:var(--a2);color:var(--a2);}
 .team-btn.ob.active{background:rgba(168,85,247,.1);border-color:var(--purple);color:var(--purple);}
-.team-btn.msd.active{background:rgba(255,170,0,.1);border-color:var(--warn);color:var(--warn);}
-.team-btn.reqs.active{background:rgba(0,136,255,.1);border-color:var(--a2);color:var(--a2);}
 .cleanup-card{background:var(--card);border:1px solid rgba(255,170,0,.3);border-radius:11px;padding:18px 20px;margin-bottom:16px;}
 .cleanup-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
 .cleanup-stats{display:flex;gap:10px;flex-wrap:wrap;}
@@ -144,13 +150,16 @@ textarea:focus{border-color:var(--accent);}
 .team-tag{display:inline-block;font-size:.58rem;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.5px;}
 .hrops-tag{background:rgba(0,136,255,.12);color:var(--a2);}
 .ob-tag{background:rgba(168,85,247,.12);color:var(--purple);}
-.msd-tag{background:rgba(255,170,0,.12);color:var(--warn);}
-.reqs-tag{background:rgba(0,136,255,.12);color:var(--a2);}
 /* Team section headers in manage */
 .team-section-hdr{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;padding:10px 0 7px;margin-top:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
-.team-section-hdr.hrops{color:var(--a2);}.team-section-hdr.ob{color:var(--purple);}.team-section-hdr.msd{color:var(--warn);}.team-section-hdr.reqs{color:var(--a2);}
-.fstop{display:inline-flex;align-items:center;gap:4px;background:rgba(255,68,102,.12);border:1px solid var(--red);color:var(--red);padding:5px 13px;border-radius:5px;font-size:.66rem;cursor:pointer;font-family:"DM Mono",monospace;white-space:nowrap;font-weight:700;transition:all .2s;}
-.fstop:hover{background:rgba(255,68,102,.28);}
+.team-section-hdr.hrops{color:var(--a2);}.team-section-hdr.ob{color:var(--purple);}
+
+@media (max-width:900px){
+  .pgrid{grid-template-columns:repeat(2,1fr) !important;}
+}
+@media (max-width:600px){
+  .pgrid{grid-template-columns:1fr !important;}
+}
 </style>
 </head>
 <body>
@@ -159,6 +168,7 @@ textarea:focus{border-color:var(--accent);}
   <div class="hdr-r">
     <div class="clock" id="clock">--:--:-- EST</div>
     <div class="live-ind"><div class="ldot"></div>LIVE</div>
+    <button class="bsm" onclick="atLogout()">Logout</button>
     <div class="rbadge mgr">MANAGER</div>
   </div>
 </header>
@@ -174,11 +184,9 @@ textarea:focus{border-color:var(--accent);}
   </div>
   <!-- TEAM SWITCHER -->
   <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
-    <button class="team-btn active" id="tbtn-both"       onclick="switchTeamBtn('both')">👥 All Teams</button>
+    <button class="team-btn active" id="tbtn-both"       onclick="switchTeamBtn('both')">👥 Both Teams</button>
     <button class="team-btn hrops"  id="tbtn-hrops"      onclick="switchTeamBtn('hrops')">🔵 HR Operations</button>
     <button class="team-btn ob"     id="tbtn-onboarding" onclick="switchTeamBtn('onboarding')">🟣 Onboarding Specialists</button>
-    <button class="team-btn msd"    id="tbtn-msd"        onclick="switchTeamBtn('msd')">🟠 MSD Data Management</button>
-    <button class="team-btn reqs"   id="tbtn-requisitions" onclick="switchTeamBtn('requisitions')">🔵 Requisitions</button>
   </div>
   <!-- TABS -->
   <div class="tabs">
@@ -186,10 +194,8 @@ textarea:focus{border-color:var(--accent);}
     <div class="tab"        id="tab-summary" onclick="sw('summary')">👥 Summary</div>
     <div class="tab"        id="tab-top"     onclick="sw('top')">🏆 Top Performers</div>
     <div class="tab"        id="tab-low"     onclick="sw('low')">⚠️ Needs Attention</div>
-    <div class="tab"        id="tab-analytics" onclick="sw('analytics')">📊 Performance Analytics</div>
-    <div class="tab"        id="tab-fte"       onclick="sw('fte')">📈 FTE Analysis</div>
     <div class="tab"        id="tab-eod"     onclick="sw('eod')">📧 EOD Report</div>
-    <div class="tab" id="tab-team"       onclick="sw('team')">👥 Manage Team</div>
+    <div class="tab" id="tab-team"       onclick="sw('team')">⚙️ Manage Team</div>
     <div class="tab" id="tab-activities" onclick="sw('activities')">🔧 Manage Activities</div>
     <div class="tab" id="tab-history"    onclick="sw('history')">🕓 Version History</div>
   </div>
@@ -223,8 +229,8 @@ textarea:focus{border-color:var(--accent);}
       </div>
       <div class="tscroll">
         <table>
-          <thead><tr><th onclick="sortBy('name')">Name</th><th>Team</th><th>Activity</th><th>Category</th><th>Date</th><th>Start (EST)</th><th>End (EST)</th><th>Count</th><th onclick="sortBy('time')">Time Taken</th><th>AHT</th><th>Comments</th><th>SLA</th><th>Action</th></tr></thead>
-          <tbody id="detail-body"><tr><td colspan="13"><div class="empty"><h3>Connecting...</h3></div></td></tr></tbody>
+          <thead><tr><th onclick="sortBy('name')">Name</th><th>Team</th><th>Activity</th><th>Category</th><th>Date</th><th>Start (EST)</th><th>End (EST)</th><th>Count</th><th onclick="sortBy('time')">Time Taken</th><th>AHT</th><th>Comments</th><th>SLA</th></tr></thead>
+          <tbody id="detail-body"><tr><td colspan="12"><div class="empty"><h3>Connecting...</h3></div></td></tr></tbody>
         </table>
       </div>
     </div>
@@ -237,12 +243,8 @@ textarea:focus{border-color:var(--accent);}
         <select id="s-sort" onchange="renderSummary()"><option value="name">Sort: Name A–Z</option><option value="high">Highest Hours</option><option value="low">Lowest Hours</option></select>
         <div class="drange"><span>Date:</span><input type="date" id="s-date" onchange="renderSummary()"/><button class="bsm" onclick="document.getElementById('s-date').value=today();renderSummary()">Today</button></div>
       </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <button class="bsm" style="border-color:var(--warn);color:var(--warn)" onclick="removeZeroTimeLogs()" id="zero-rm-btn" title="Permanently deletes all log entries with 0 seconds from the selected date">🗑 Remove Zero-Time Logs</button>
-        <button class="bsm green" onclick="dlSummaryCSV()">⬇ Download Summary</button>
-      </div>
+      <button class="bsm green" onclick="dlSummaryCSV()">⬇ Download Summary</button>
     </div>
-    <div id="zero-rm-status" style="display:none;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:.72rem;"></div>
     <div class="pgrid" id="sum-grid"></div>
   </div>
 
@@ -282,99 +284,33 @@ textarea:focus{border-color:var(--accent);}
     </div>
   </div>
 
-  <!-- PERFORMANCE ANALYTICS -->
-  <div id="panel-analytics" class="panel">
-    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
-      <div class="tbar-l">
-        <select id="ana-period" onchange="renderAnalytics()"><option value="daily">Daily</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annually">Annually</option></select>
-        <input type="number" id="ana-year" value="2026" style="width:80px" onchange="renderAnalytics()"/>
-      </div>
-    </div>
-    <div class="mgrid">
-      <div class="mc" style="grid-column: 1 / -1;">
-        <div class="mh"><span class="stitle">Productivity Trend</span></div>
-        <div class="mb" style="height: 350px;"><canvas id="ana-chart"></canvas></div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">Activity Distribution</span></div>
-        <div class="mb" style="height: 300px;"><canvas id="ana-pie"></canvas></div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">Production Summary</span></div>
-        <div class="mb" id="ana-summary">
-          <!-- Summary cards will go here -->
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FTE ANALYSIS -->
-  <div id="panel-fte" class="panel">
-    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
-      <div class="tbar-l">
-        <select id="fte-period" onchange="renderFTE()"><option value="daily">Daily</option><option value="monthly">Monthly</option><option value="annually">Annually</option></select>
-        <div class="drange">
-          <span>From:</span><input type="date" id="fte-from" onchange="renderFTE()"/>
-          <span>To:</span><input type="date" id="fte-to" onchange="renderFTE()"/>
-        </div>
-      </div>
-      <button class="bsm green" onclick="dlFTECSV()">⬇ Export FTE CSV</button>
-    </div>
-    <div class="twrap">
-      <div class="tscroll">
-        <table id="fte-table">
-          <thead>
-            <tr>
-              <th>Activity Name</th>
-              <th>Avg Time</th>
-              <th>Count</th>
-              <th>Hours Spent</th>
-              <th>Transactions</th>
-              <th>FTE</th>
-              <th>% of Total</th>
-            </tr>
-          </thead>
-          <tbody id="fte-body"></tbody>
-          <tfoot>
-            <tr id="fte-total-row"></tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </div>
-
   
   <!-- MANAGE TEAM -->
   <div id="panel-team" class="panel">
     <div class="wbox">⚠ Firebase Console → Realtime Database → Rules → set .read and .write to <code>true</code> if Add fails.</div>
 
+    <!-- MIGRATE OLD DATA — prominent card -->
+    <div style="background:rgba(0,136,255,.08);border:2px solid rgba(0,136,255,.4);border-radius:11px;padding:18px 20px;margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--a2);margin-bottom:5px">📦 Migrate Old Data to New Structure</div>
+          <div style="font-size:.72rem;color:var(--muted);max-width:560px;line-height:1.6">Old associate logs are saved under <code style="color:var(--a2);background:rgba(0,136,255,.1);padding:1px 5px;border-radius:3px">associates/</code> path. Click this button to move all old data into <code style="color:var(--a2);background:rgba(0,136,255,.1);padding:1px 5px;border-radius:3px">hrops/associates/</code> and <code style="color:var(--purple);background:rgba(168,85,247,.1);padding:1px 5px;border-radius:3px">onboarding/associates/</code> so it appears in all dashboards.</div>
+        </div>
+        <button id="migrate-btn" onclick="migrateOldData()" style="background:var(--a2);color:#000;border:none;padding:11px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;">📦 Migrate Old Data</button>
+      </div>
+      <div id="migrate-status" style="display:none;margin-top:12px;font-size:.72rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 14px;"></div>
+    </div>
     <div class="mgrid">
       <div class="mc">
         <div class="mh"><span class="stitle">HR Ops Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-hrops">0 members</span></div>
-        <div class="mb">
-          <div id="m-list-hrops"></div>
+        <div class="mb"><div id="m-list-hrops"></div>
           <div class="addrow"><input type="text" id="new-m-hrops" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('hrops')"/><button class="bsm green" onclick="addMember('hrops')">+ Add</button></div>
         </div>
       </div>
       <div class="mc">
         <div class="mh"><span class="stitle">Onboarding Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-onboarding">0 members</span></div>
-        <div class="mb">
-          <div id="m-list-onboarding"></div>
+        <div class="mb"><div id="m-list-onboarding"></div>
           <div class="addrow"><input type="text" id="new-m-onboarding" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('onboarding')"/><button class="bsm green" onclick="addMember('onboarding')">+ Add</button></div>
-        </div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">MSD Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-msd">0 members</span></div>
-        <div class="mb">
-          <div id="m-list-msd"></div>
-          <div class="addrow"><input type="text" id="new-m-msd" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('msd')"/><button class="bsm green" onclick="addMember('msd')">+ Add</button></div>
-        </div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">Requisitions Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-requisitions">0 members</span></div>
-        <div class="mb">
-          <div id="m-list-requisitions"></div>
-          <div class="addrow"><input type="text" id="new-m-requisitions" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('requisitions')"/><button class="bsm green" onclick="addMember('requisitions')">+ Add</button></div>
         </div>
       </div>
     </div>
@@ -389,6 +325,7 @@ textarea:focus{border-color:var(--accent);}
               <button class="bsm green" onclick="saveSLA('hrops')">Save</button>
             </div>
             <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-hrops" style="color:var(--accent)">8 hours</span></p>
+            <div style="margin-top:12px"><label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lead Approval Enforcement</label><button class="bsm green" id="approval-toggle-hrops" onclick="saveApprovalToggle('hrops')">Loading...</button><p style="color:var(--muted);font-size:.67rem;margin-top:5px" id="approval-cur-hrops">Buffer: 5 minutes</p></div>
           </div>
           <div>
             <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
@@ -410,6 +347,7 @@ textarea:focus{border-color:var(--accent);}
               <button class="bsm green" onclick="saveSLA('onboarding')">Save</button>
             </div>
             <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-onboarding" style="color:var(--accent)">8 hours</span></p>
+            <div style="margin-top:12px"><label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lead Approval Enforcement</label><button class="bsm green" id="approval-toggle-onboarding" onclick="saveApprovalToggle('onboarding')">Loading...</button><p style="color:var(--muted);font-size:.67rem;margin-top:5px" id="approval-cur-onboarding">Buffer: 5 minutes</p></div>
           </div>
           <div>
             <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
@@ -418,48 +356,6 @@ textarea:focus{border-color:var(--accent);}
               <button class="bsm green" onclick="savePriv('onboarding')">Save</button>
             </div>
             <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="priv-cur-onboarding" style="color:var(--accent)">Open</span></p>
-          </div>
-        </div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">MSD SLA & Settings</span></div>
-        <div class="mb">
-          <div style="margin-bottom:14px">
-            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Daily SLA Target (hours)</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="number" id="sla-h-msd" value="8" min="1" max="24" style="width:75px"/>
-              <button class="bsm green" onclick="saveSLA('msd')">Save</button>
-            </div>
-            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-msd" style="color:var(--accent)">8 hours</span></p>
-          </div>
-          <div>
-            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <select id="priv-mode-msd"><option value="open">Open</option><option value="restricted">Restricted</option></select>
-              <button class="bsm green" onclick="savePriv('msd')">Save</button>
-            </div>
-            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="priv-cur-msd" style="color:var(--accent)">Open</span></p>
-          </div>
-        </div>
-      </div>
-      <div class="mc">
-        <div class="mh"><span class="stitle">Requisitions SLA & Settings</span></div>
-        <div class="mb">
-          <div style="margin-bottom:14px">
-            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Daily SLA Target (hours)</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <input type="number" id="sla-h-requisitions" value="8" min="1" max="24" style="width:75px"/>
-              <button class="bsm green" onclick="saveSLA('requisitions')">Save</button>
-            </div>
-            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-requisitions" style="color:var(--accent)">8 hours</span></p>
-          </div>
-          <div>
-            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
-            <div style="display:flex;gap:8px;align-items:center">
-              <select id="priv-mode-requisitions"><option value="open">Open</option><option value="restricted">Restricted</option></select>
-              <button class="bsm green" onclick="savePriv('requisitions')">Save</button>
-            </div>
-            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="priv-cur-requisitions" style="color:var(--accent)">Open</span></p>
           </div>
         </div>
       </div>
@@ -501,42 +397,6 @@ textarea:focus{border-color:var(--accent);}
           <div><label>AHT (HH:MM:SS)</label><input type="text" id="na-aht-onboarding" placeholder="00:05:00"/></div>
           <div><label>Category</label><input type="text" id="na-cat-onboarding" placeholder="General"/></div>
           <div style="display:flex;align-items:flex-end"><button class="bsm green" onclick="addAct('onboarding')">+ Add</button></div>
-        </div>
-      </div>
-    </div>
-    <div class="twrap" style="margin-top:16px">
-      <div class="mh"><span class="stitle" style="color:var(--warn)">🟠 MSD Activities</span><span style="font-size:.69rem;color:var(--muted)" id="act-cnt-msd">0 activities</span></div>
-      <div style="padding:13px 16px;max-height:420px;overflow-y:auto">
-        <div class="arow" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Activity Name</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">AHT</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Category</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Actions</span>
-        </div>
-        <div id="act-list-msd"></div>
-        <div class="aaform">
-          <div><label>Activity Name</label><input type="text" id="na-name-msd" placeholder="New activity name"/></div>
-          <div><label>AHT (HH:MM:SS)</label><input type="text" id="na-aht-msd" placeholder="00:05:00"/></div>
-          <div><label>Category</label><input type="text" id="na-cat-msd" placeholder="Reports"/></div>
-          <div style="display:flex;align-items:flex-end"><button class="bsm green" onclick="addAct('msd')">+ Add</button></div>
-        </div>
-      </div>
-    </div>
-    <div class="twrap" style="margin-top:16px">
-      <div class="mh"><span class="stitle" style="color:var(--a2)">🔵 Requisitions Activities</span><span style="font-size:.69rem;color:var(--muted)" id="act-cnt-requisitions">0 activities</span></div>
-      <div style="padding:13px 16px;max-height:420px;overflow-y:auto">
-        <div class="arow" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Activity Name</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">AHT</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Category</span>
-          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Actions</span>
-        </div>
-        <div id="act-list-requisitions"></div>
-        <div class="aaform">
-          <div><label>Activity Name</label><input type="text" id="na-name-requisitions" placeholder="New activity name"/></div>
-          <div><label>AHT (HH:MM:SS)</label><input type="text" id="na-aht-requisitions" placeholder="00:05:00"/></div>
-          <div><label>Category</label><input type="text" id="na-cat-requisitions" placeholder="Process"/></div>
-          <div style="display:flex;align-items:flex-end"><button class="bsm green" onclick="addAct('requisitions')">+ Add</button></div>
         </div>
       </div>
     </div>
@@ -603,13 +463,12 @@ firebase.initializeApp(FB);
 const db=firebase.database();
 
 const ROLE='manager';
-const ALL_TEAMS=['hrops', 'onboarding', 'msd', 'requisitions'];
-let viewTeam='both'; // active view filter (manager can switch)
+const ALL_TEAMS=['hrops', 'onboarding'];
+let viewTeam='hrops'; // active view filter (manager can switch)
 
-let allData={}, SLA_HOURS=8, SLA_SEC=8*3600, mListenerOn=false;
-let actsDataHrops=[], actsDataOnboarding=[], actsDataMsd=[], actsDataRequisitions=[], sortFld='name', sortDir=1, editIdx=-1, editTeam='hrops';
+let allData={}, SLA_HOURS=8, SLA_SEC=8*3600, mListenerOn=false, currentUser=null, approvalSettingsByTeam={hrops:{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC},onboarding:{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC}};
+let actsDataHrops=[], actsDataOnboarding=[], sortFld='name', sortDir=1, editIdx=-1, editTeam='hrops';
 let summaryTickIv=null, perfTickIv=null;
-let anaChart=null, anaPie=null;
 
 const pad=n=>String(n).padStart(2,'0');
 const hms=s=>{s=Math.max(0,s);return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60);};
@@ -617,17 +476,8 @@ const san=s=>s.replace(/[.#\$[\]/\s]/g,'_');
 const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
 const estNow=()=>new Date().toLocaleString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-// Returns true only if active session startTs is from today (EST)
-const FBURL='https://activity-tracker-40c7a-default-rtdb.firebaseio.com';
-const isActiveToday=a=>!!(a&&a.startTs&&new Date(a.startTs).toLocaleDateString('en-CA',{timeZone:'America/New_York'})===today());
 const h2s=h=>{const p=(h||'').split(':');return parseInt(p[0]||0)*3600+parseInt(p[1]||0)*60+parseInt(p[2]||0);};
-function getActsData(team){
-  if(team==='hrops') return actsDataHrops;
-  if(team==='onboarding') return actsDataOnboarding;
-  if(team==='msd') return actsDataMsd;
-  if(team==='requisitions') return actsDataRequisitions;
-  return [];
-}
+function getActsData(team){return team==='hrops'?actsDataHrops:actsDataOnboarding;}
 
 // Get filtered allData entries based on current viewTeam
 function getFilteredData(){
@@ -643,39 +493,111 @@ function switchTeamBtn(team){
 }
 
 
+// ✅ SMART AUTO MIGRATION (ADDED)
+function detectTeamFromLogs(associate) {
+  if (!associate.logs || !associate.logs.length) return "hrops";
+  let hropsScore = 0, onboardingScore = 0;
+
+  associate.logs.forEach(log => {
+    const activity = (log.activity || "").toLowerCase();
+    const category = (log.category || "").toLowerCase();
+
+    if (activity.includes("compliance") || activity.includes("audit") || activity.includes("termination") || category.includes("hr ops") || category.includes("internal audit")) {
+      hropsScore++;
+    }
+
+    if (activity.includes("onboarding") || activity.includes("paperwork") || activity.includes("bg") || category.includes("onboarding")) {
+      onboardingScore++;
+    }
+  });
+
+  return onboardingScore > hropsScore ? "onboarding" : "hrops";
+}
+
+async function autoMigrateDataSmart() {
+  const migratedRef = db.ref('migration/smart_done');
+  const migratedSnap = await migratedRef.once('value');
+  if (migratedSnap.val()) return;
+
+  const snap = await db.ref('associates').once('value');
+  if (!snap.exists()) return;
+
+  const updates = {};
+  const data = snap.val();
+
+  Object.entries(data).forEach(([key, value]) => {
+    const team = detectTeamFromLogs(value);
+    updates[team + "/associates/" + key] = value;
+  });
+
+  await db.ref().update(updates);
+  await migratedRef.set(true);
+  console.log("✅ Smart migration completed");
+}
 
 
 window.onload=function(){
+  currentUser=atRequire(['manager']);
+  if(!currentUser)return;
+  autoMigrateDataSmart();
   setInterval(()=>{document.getElementById('clock').textContent=estNow()+' EST';},1000);
   document.getElementById('eod-date').value=today();
   document.getElementById('s-date').value=today();
-  document.getElementById('fte-from').value=today();
-  document.getElementById('fte-to').value=today();
   setDP('today');
+  autoMigrateOldData(); // silently migrate old data on every load
   fetchAll();loadSettings();loadActs();
   setInterval(()=>{renderDetail();updateTopStats();updateMgrPill();},10000);
 };
 
+// ── Auto Migrate Old Data on Load (silent) ───────────────
+const HROPS_NAMES=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
+const OB_NAMES=['Aathirai Arumugam','Annie Hronec','Caio Silva','Cheyselle Cuaresma','Hanna Mae Ontong Pagdato','Karen Rodriguez','Luv Arora','Pooja Tripathi','Shubham Shyam','Sofia Romjin Orial','Sunil Kumar Muniraj','Victoria Isabel Busaco','Victoria Sousa'];
+
+async function autoMigrateOldData(){
+  try{
+    // Check if old associates/ path has any data
+    const snap=await db.ref('associates').once('value');
+    const oldData=snap.val();
+    if(!oldData){return;} // nothing to migrate
+
+    let migrated=0;
+    for(const [key,data] of Object.entries(oldData)){
+      const name=(data.meta&&data.meta.name)||key.replace(/_/g,' ');
+      // Determine team by name match
+      let team='hrops';
+      if(OB_NAMES.some(n=>n.toLowerCase()===name.toLowerCase())) team='onboarding';
+
+      const newPath=team+'/associates/'+key;
+
+      // Copy logs if they exist
+      if(data.logs){
+        const existingSnap=await db.ref(newPath+'/logs').once('value');
+        const existingLogs=existingSnap.val()||{};
+        for(const [logKey,log] of Object.entries(data.logs)){
+          if(!existingLogs[logKey]){ // only copy if not already there
+            await db.ref(newPath+'/logs/'+logKey).set({...log,team});
+            migrated++;
+          }
+        }
+      }
+      // Copy meta
+      if(data.meta) await db.ref(newPath+'/meta').set({...data.meta,team});
+      // Copy active session if present
+      if(data.active) await db.ref(newPath+'/active').set({...data.active,team});
+    }
+
+    if(migrated>0){
+      console.log(`Auto-migrated ${migrated} old log entries to team paths`);
+      // Refresh data after migration
+      fetchAll();
+    }
+  }catch(e){
+    console.log('Auto-migration skipped:',e.message);
+  }
+}
 
 // ── Firebase ──────────────────────────────────────────────
 let prevActive=new Set();
-
-// ── Sanitise raw logs from Firebase ──
-// Ensures every log has a valid YYYY-MM-DD date (derived from startTs if missing).
-// Drops logs with no date and no startTs. Coerces numeric fields to int.
-function sanitiseLog(log){
-  if(!log||typeof log!=='object') return null;
-  let d=log.date;
-  if(!d||typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d)){
-    if(log.startTs) d=new Date(log.startTs).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-    else return null;
-  }
-  return {...log,date:d,totalTimeSec:parseInt(log.totalTimeSec)||0,count:parseInt(log.count)||0,aht:parseInt(log.aht)||0};
-}
-function sanitiseLogs(logsObj){
-  if(!logsObj) return [];
-  return Object.values(logsObj).map(sanitiseLog).filter(Boolean);
-}
 function fetchAll(){
   ALL_TEAMS.forEach(team=>{
     db.ref(team+'/associates').on('value',snap=>{
@@ -684,14 +606,8 @@ function fetchAll(){
         const meta=v.meta||{};
         const name=meta.name||k.replace(/_/g,' ');
         const key=team+'::'+name;
-        // Kill stale active sessions — if startTs is not from today, delete from Firebase
-        let active=v.active||null;
-        if(active&&!isActiveToday(active)){
-          fetch(FBURL+'/'+team+'/associates/'+k+'/active.json',{method:'DELETE'});
-          active=null;
-        }
-        allData[key]={meta,logs:sanitiseLogs(v.logs),active,team,displayName:name};
-        if(active) prevActive.add(key);
+        allData[key]={meta,logs:v.logs?Object.entries(v.logs).map(([lk,lv])=>({...lv,_key:lk,_path:team+'/associates/'+k+'/logs/'+lk})):[],active:v.active||null,team,displayName:name};
+        if(v.active) prevActive.add(key);
       });
       updateTopStats();renderDetail();renderSummary();renderTop();renderLow();updateMgrPill();
     });
@@ -707,6 +623,7 @@ function loadSettings(){
       const cur=document.getElementById('sla-cur-'+team);
       if(el)el.value=h; if(cur)cur.textContent=h+' hours';
     });
+    atLoadApprovalSettings(db,team,s=>{approvalSettingsByTeam[team]=s;updateApprovalToggle(team);renderDetail();});
     db.ref(team+'/settings/privacy').on('value',s=>{
       const v=s.val()||'open';
       const el=document.getElementById('priv-mode-'+team);
@@ -751,49 +668,15 @@ function loadActs(){
     {name:"Joddiva Assignment Audit",aht:300,category:"General"},{name:"Business Team Meeting",aht:1800,category:"General"},
     {name:"Ad-hoc Activities",aht:900,category:"General"},{name:"Onboarding Review Call",aht:1800,category:"General"}
   ];
-  const MSD_DEF=[
-    {name:"Reports - Week Start",aht:900,category:"Reports"},
-    {name:"Reports - Starts details to respective team",aht:600,category:"Reports"},
-    {name:"Reports - Visa Expiration",aht:1800,category:"Reports"},
-    {name:"Reports - Others",aht:1800,category:"Reports"},
-    {name:"Employee Creation - Manual",aht:1200,category:"Process"},
-    {name:"Employee Creation - Bulk - Data Extraction",aht:600,category:"Process"},
-    {name:"Employee Creation - Bulk Upload",aht:3600,category:"Process"},
-    {name:"Emergency Data Update",aht:30,category:"Process"},
-    {name:"Additional Pay Types",aht:120,category:"Process"},
-    {name:"Termination Data Preparation",aht:120,category:"Process"},
-    {name:"Termination - Manual",aht:60,category:"Process"},
-    {name:"Vendor Creation",aht:900,category:"Process"},
-    {name:"Data Changes - Manual",aht:300,category:"Process"},
-    {name:"Email Response",aht:120,category:"Process"},
-    {name:"Internal Audit - Employee Creation",aht:1200,category:"Audit"},
-    {name:"Internal Audit - Data changes",aht:300,category:"Audit"},
-    {name:"Ad-hoc activities",aht:900,category:"Others"},
-    {name:"Meetings",aht:1800,category:"Others"},
-    {name:"Short Break",aht:900,category:"Others"},
-    {name:"Dinner Break",aht:1800,category:"Others"},
-    {name:"Training",aht:1800,category:"Others"}
-  ];
-  const REQS_DEF=[
-    {name:"Requistions",aht:480,category:"Process"},
-    {name:"Coddler jobs audit",aht:300,category:"Process"},
-    {name:"Submissions",aht:600,category:"Process"},
-    {name:"Submissions Audit",aht:300,category:"Process"},
-    {name:"Team huddle",aht:1200,category:"Process"},
-    {name:"Ad-hoc Activities",aht:900,category:"Process"},
-    {name:"TL Review Call",aht:1800,category:"Process"}
-  ];
   db.ref('hrops/activities').on('value',s=>{actsDataHrops=s.val()||HROPS_DEF;if(document.getElementById('act-list-hrops'))renderActsList('hrops');rebuildCatFilter();});
   db.ref('onboarding/activities').on('value',s=>{actsDataOnboarding=s.val()||OB_DEF;if(document.getElementById('act-list-onboarding'))renderActsList('onboarding');rebuildCatFilter();});
-  db.ref('msd/activities').on('value',s=>{actsDataMsd=s.val()||MSD_DEF;if(document.getElementById('act-list-msd'))renderActsList('msd');rebuildCatFilter();});
-  db.ref('requisitions/activities').on('value',s=>{actsDataRequisitions=s.val()||REQS_DEF;if(document.getElementById('act-list-requisitions'))renderActsList('requisitions');rebuildCatFilter();});
 }
 
 function rebuildCatFilter(){
   const sel=document.getElementById('f-cat');if(!sel)return;
   const cur=sel.value;
   let cats=[];
-  const teamsToShow=viewTeam==='both'?ALL_TEAMS:[viewTeam];
+  const teamsToShow=viewTeam==='both'?['hrops','onboarding']:[viewTeam];
   teamsToShow.forEach(t=>{
     getActsData(t).forEach(a=>{if(a.category&&!cats.includes(a.category))cats.push(a.category);});
   });
@@ -811,7 +694,7 @@ function getSLAForTeam(team){
 function updateTopStats(){
   const t=today();let active=0,acts=0,sec=0,cnt=0,met=0,below=0;
   getFilteredData().forEach(([,a])=>{
-    if(a.active&&isActiveToday(a.active))active++;
+    if(a.active)active++;
     const tLogs=a.logs.filter(l=>l.date===t);acts+=tLogs.length;
     const s=tLogs.reduce((x,e)=>x+(e.totalTimeSec||0),0);
     const c=tLogs.reduce((x,e)=>x+(e.count||0),0);
@@ -829,7 +712,7 @@ function updateTopStats(){
 // ── Mgr Pill ──────────────────────────────────────────────
 function updateMgrPill(){
   const pill=document.getElementById('mgr-pill'),dot=document.getElementById('mgr-dot'),pn=document.getElementById('mgr-pname'),pc=document.getElementById('mgr-pcount');
-  const active=getFilteredData().filter(([,a])=>a.active&&isActiveToday(a.active));
+  const active=getFilteredData().filter(([,a])=>a.active);
   if(active.length){
     pill.className='pill';dot.className='pdot';
     pn.textContent=active.length+' active: '+active.slice(0,3).map(([,a])=>a.displayName.split(' ')[0]).join(', ')+(active.length>3?'…':'');
@@ -849,16 +732,16 @@ function getRows(){
   getFilteredData().forEach(([key,a])=>{
     if(nm&&!a.displayName.toLowerCase().includes(nm))return;
     const isToday=!dFrom||dFrom===today();
-    if(a.active&&isToday&&isActiveToday(a.active)){
+    if(a.active&&isToday){
       const r={...a.active,_n:a.displayName,_team:a.team,_run:true,_aSec:0};
       r._aSec=Math.floor((Date.now()-a.active.startTs)/1000)+a.logs.filter(l=>l.date===today()).reduce((s,e)=>s+(e.totalTimeSec||0),0);
       if((cat==='all'||r.category===cat)&&(sla==='all')&&(stat==='all'||stat==='running'))rows.push(r);
     }
     a.logs.forEach(e=>{
-      const d=e.date;if(!d||d<dFrom||d>dTo)return;
+      const d=e.date||today();if(d<dFrom||d>dTo)return;
       if(nm&&!a.displayName.toLowerCase().includes(nm))return;
       if(cat!=='all'&&e.category!==cat)return;
-      const totSec=a.logs.filter(l=>l.date===d).reduce((s,x)=>s+(parseInt(x.totalTimeSec)||0),0);
+      const totSec=a.logs.filter(l=>(l.date||today())===d).reduce((s,x)=>s+(x.totalTimeSec||0),0);
       const slaOK=totSec>=SLA_SEC;
       if(sla==='met'&&!slaOK)return;if(sla==='below'&&slaOK)return;
       if(stat==='running')return;
@@ -872,21 +755,14 @@ function getRows(){
 function renderDetail(){
   const rows=getRows();
   const tbody=document.getElementById('detail-body');
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="13"><div class="empty"><h3>No data</h3></div></td></tr>';return;}
-  const teamLabel=t=>{
-    if(t==='hrops') return '<span style="font-size:.6rem;background:rgba(0,136,255,.12);color:var(--a2);padding:1px 5px;border-radius:3px">HR Ops</span>';
-    if(t==='onboarding') return '<span style="font-size:.6rem;background:rgba(168,85,247,.12);color:var(--purple);padding:1px 5px;border-radius:3px">Onboarding</span>';
-    if(t==='msd') return '<span style="font-size:.6rem;background:rgba(255,170,0,.12);color:var(--warn);padding:1px 5px;border-radius:3px">MSD</span>';
-    if(t==='requisitions') return '<span style="font-size:.6rem;background:rgba(0,136,255,.12);color:var(--a2);padding:1px 5px;border-radius:3px">Requisitions</span>';
-    return t;
-  };
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="12"><div class="empty"><h3>No data</h3></div></td></tr>';return;}
+  const teamLabel=t=>t==='hrops'?'<span style="font-size:.6rem;background:rgba(0,136,255,.12);color:var(--a2);padding:1px 5px;border-radius:3px">HR Ops</span>':'<span style="font-size:.6rem;background:rgba(168,85,247,.12);color:var(--purple);padding:1px 5px;border-radius:3px">Onboarding</span>';
   tbody.innerHTML=rows.map(r=>{
     const e=r._run?Math.floor((Date.now()-r.startTs)/1000):(r.totalTimeSec||0);
     const slaOK=r._aSec>=SLA_SEC;
     const cmnt=r.comments?`<span style="color:var(--muted);font-size:.63rem" title="${r.comments}">💬 ${r.comments.length>18?r.comments.slice(0,18)+'…':r.comments}</span>`:'—';
-    const fbKey=r._n.replace(/[.#$[\]/\s]/g,'_');
-    const stopBtn=r._run?`<button class="fstop" onclick="forceStop('${r._n}','${r._team}','${fbKey}')">■ Force Stop</button>`:'';
-    return `<tr><td style="font-weight:500">${r._n}</td><td>${teamLabel(r._team)}</td><td>${r.activity}</td><td style="font-size:.62rem;color:var(--muted)">${r.category||'—'}</td><td style="font-size:.62rem">${r.date||'—'}</td><td>${r.startTime||'—'}</td><td>${r._run?'<span class="rbadge2"><span class="blink">●</span> LIVE</span>':r.endTime||'—'}</td><td>${r.count||0}</td><td style="font-weight:500">${hms(e)}</td><td>${r.count>0?hms(Math.round(e/r.count)):'—'}</td><td>${cmnt}</td><td class="${slaOK?'sg':'sr'}">${slaOK?'✓ Met':'✗ Below'}</td><td>${stopBtn}</td></tr>`;
+    const ts=atTaskStatus(r,e,approvalSettingsByTeam[r._team]||approvalSettingsByTeam.hrops);
+    return `<tr><td style="font-weight:500">${r._n}</td><td>${teamLabel(r._team)}</td><td>${r.activity}</td><td style="font-size:.62rem;color:var(--muted)">${r.category||'—'}</td><td style="font-size:.62rem">${r.date||'—'}</td><td>${r.startTime||'—'}</td><td>${r._run?'<span class="rbadge2"><span class="blink">●</span> LIVE</span>':r.endTime||'—'}</td><td>${r.count||0}</td><td style="font-weight:500">${hms(e)}</td><td>${r.count>0?hms(Math.round(e/r.count)):'—'}</td><td>${cmnt}</td><td class="${ts.cls}">${ts.text}</td></tr>`;
   }).join('');
 }
 
@@ -912,29 +788,17 @@ function renderSummary(){
   if(!ents.length){grid.innerHTML='<div class="empty"><h3>No data yet</h3></div>';return;}
   const isToday=!fd||fd===today();
   let cards=ents.map(([key,a])=>{
-    // Filter out zero-time logs (they pollute the summary)
-    const logs=a.logs.filter(l=>l.date===fd&&(l.totalTimeSec||0)>0);
-    const allLogsForDay=a.logs.filter(l=>l.date===fd);
+    const logs=a.logs.filter(l=>l.date===fd);
     const cSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
-    const aSec=a.active&&isToday&&isActiveToday(a.active)?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const aSec=a.active&&isToday&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
     const tSec=cSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
     const aht=cnt>0?hms(Math.round(cSec/cnt)):'—',ok=tSec>=SLA_SEC;
-    const zeroCount=allLogsForDay.filter(l=>(l.totalTimeSec||0)===0).length;
-    return{name:a.displayName,team:a.team,tSec,cSec,aSec,cnt,aht,ok,def:tSec-SLA_SEC,active:isToday&&isActiveToday(a.active)?a.active:null,logs,zeroCount};
+    return{name:a.displayName,team:a.team,tSec,cSec,aSec,cnt,aht,ok,def:tSec-SLA_SEC,active:isToday?a.active:null,logs};
   });
-  // Hide associates with zero total time AND no active session on the selected date
-  cards=cards.filter(c=>c.tSec>0||c.active);
-  if(!cards.length){grid.innerHTML='<div class="empty"><h3>No activity recorded for this date</h3></div>';return;}
   if(srt==='high')cards.sort((a,b)=>b.tSec-a.tSec);
   else if(srt==='low')cards.sort((a,b)=>a.tSec-b.tSec);
   else cards.sort((a,b)=>a.name.localeCompare(b.name));
-  const teamTag=t=>{
-    if(t==='hrops') return '<span class="team-tag hrops-tag">HR Ops</span>';
-    if(t==='onboarding') return '<span class="team-tag ob-tag">Onboarding</span>';
-    if(t==='msd') return '<span class="team-tag msd-tag">MSD</span>';
-    if(t==='requisitions') return '<span class="team-tag reqs-tag">Requisitions</span>';
-    return t;
-  };
+  const teamTag=t=>t==='hrops'?'<span class="team-tag hrops-tag">HR Ops</span>':'<span class="team-tag ob-tag">Onboarding</span>';
   grid.innerHTML=cards.map(c=>{
     const sn=c.name.replace(/[^a-z0-9]/gi,'_');
     return `<div class="pc ${c.ok?'top':'low'}" id="scard-${sn}">
@@ -943,7 +807,7 @@ function renderSummary(){
           <div class="pn">${c.name}</div>
           ${c.active?'<span class="live-chip"><span class="blink">●</span> LIVE</span>':''}
         </div>
-        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${teamTag(c.team)}<div style="font-size:.6rem;color:var(--muted)">${c.logs.length} activities${c.zeroCount>0?` <span style="color:var(--warn);font-size:.57rem">(${c.zeroCount} zero-time hidden)</span>`:''}</div></div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${teamTag(c.team)}<div style="font-size:.6rem;color:var(--muted)">${c.logs.length} activities</div></div>
       </div>
       <div class="pt ${c.ok?'tg':'tr'}" id="stot-${sn}">${hms(c.tSec)}</div></div>
       <div class="ps">
@@ -952,7 +816,7 @@ function renderSummary(){
         <div class="ms"><div class="ml">AHT</div><div class="mv">${c.aht}</div></div>
         <div class="ms"><div class="ml">SLA</div><div class="mv ${c.ok?'tg':'tr'}" id="ssla-${sn}">${c.ok?'✓ Met':'✗ Below'}</div></div>
       </div>
-      ${c.active?`<div class="live-act-bar" id="sact-${sn}"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="selapsed-${sn}">${hms(c.aSec)}</span><button class="fstop" style="margin-left:8px;flex-shrink:0" onclick="forceStop('${c.name}','${c.team}','${c.name.replace(/[.#\$\[\]\/\s]/g,'_')}')">■ Stop</button></div>`:''}
+      ${c.active?`<div class="live-act-bar" id="sact-${sn}"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="selapsed-${sn}">${hms(c.aSec)}</span></div>`:''}
     </div>`;
   }).join('');
   startSummaryTick();
@@ -969,12 +833,11 @@ function getPerfScores(period){
     else if(period==='month')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,7)));
     else if(period==='year')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,4)));
     const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
-    const aSec=isToday&&isActiveToday(a.active)?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const aSec=isToday&&a.active&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
     const tSec=doneSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
-    return{name:a.displayName,team:a.team,tSec,cnt,ok:tSec>=SLA_SEC,lc:logs.length,active:isToday&&isActiveToday(a.active)?a.active:null,aSec};
+    return{name:a.displayName,team:a.team,tSec,cnt,ok:tSec>=SLA_SEC,lc:logs.length,active:isToday?a.active:null,aSec};
   }).filter(s=>s.lc>0||(s.active));
 }
-
 function renderTop(){
   const period=document.getElementById('top-period')?.value||'today';
   const scores=getPerfScores(period).sort((a,b)=>b.tSec-a.tSec);
@@ -993,18 +856,12 @@ function renderLow(){
 }
 function perfCard(s,rank,type){
   const sn=s.name.replace(/[^a-z0-9]/gi,'_')+'_'+type;
-  const teamTag=t=>{
-    if(t==='hrops') return '<span class="team-tag hrops-tag">HR Ops</span>';
-    if(t==='onboarding') return '<span class="team-tag ob-tag">Onboarding</span>';
-    if(t==='msd') return '<span class="team-tag msd-tag">MSD</span>';
-    if(t==='requisitions') return '<span class="team-tag reqs-tag">Requisitions</span>';
-    return t;
-  };
+  const teamTag=s.team==='hrops'?'<span class="team-tag hrops-tag">HR Ops</span>':'<span class="team-tag ob-tag">Onboarding</span>';
   return `<div class="pc ${type==='top'?'top':'low'}">
     <div class="ph"><div>
       <div class="rn">#${rank}</div>
       <div style="display:flex;align-items:center;gap:6px"><div class="pn">${s.name}</div>${s.active?'<span class="live-chip"><span class="blink">●</span> LIVE</span>':''}</div>
-      <div style="margin-top:3px">${teamTag(s.team)}</div>
+      <div style="margin-top:3px">${teamTag}</div>
     </div>
     <div class="pt ${s.ok?'tg':'tr'}" id="ptot-${sn}">${hms(s.tSec)}</div></div>
     <div class="ps">
@@ -1013,7 +870,7 @@ function perfCard(s,rank,type){
       <div class="ms"><div class="ml">SLA</div><div class="mv ${s.ok?'tg':'tr'}" id="psla-${sn}">${s.ok?'✓ Met':'✗ Below'}</div></div>
       <div class="ms"><div class="ml">Status</div><div class="mv">${type==='top'?'⭐ Top':'⚠ Low'}</div></div>
     </div>
-    ${s.active?`<div class="live-act-bar"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="pelapsed-${sn}">${hms(s.aSec)}</span><button class="fstop" style="margin-left:8px;flex-shrink:0" onclick="forceStop('${s.name}','${s.team}','${s.name.replace(/[.#\$\[\]\/\s]/g,'_')}')">■ Stop</button></div>`:''}
+    ${s.active?`<div class="live-act-bar"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="pelapsed-${sn}">${hms(s.aSec)}</span></div>`:''}
   </div>`;
 }
 
@@ -1024,8 +881,9 @@ function startSummaryTick(){
   if(!isToday)return;
   summaryTickIv=setInterval(()=>{
     getFilteredData().forEach(([key,a])=>{
-      if(!a.active||!isActiveToday(a.active))return;
+      if(!a.active)return;
       const sn=a.displayName.replace(/[^a-z0-9]/gi,'_');
+      if(!a.active.startTs)return;
       const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
       const logs=a.logs.filter(l=>l.date===today());
       const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
@@ -1043,7 +901,7 @@ function startPerfTick(type){
   if(period!=='today')return;
   perfTickIv=setInterval(()=>{
     getFilteredData().forEach(([key,a])=>{
-      if(!a.active||!isActiveToday(a.active))return;
+      if(!a.active)return;
       const sn=a.displayName.replace(/[^a-z0-9]/gi,'_')+'_'+type;
       const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
       const logs=a.logs.filter(l=>l.date===today());
@@ -1072,8 +930,7 @@ function genEOD(){
   r+=`TEAM SUMMARY\n${('-').repeat(30)}\nTotal Productive Hours : ${hms(teamTot)}\nAssociates Tracked : ${ents.length}\nSLA Met (≥${SLA_HOURS}h) : ${met}\nBelow SLA : ${ents.length-met}\n\n`;
   r+=`INDIVIDUAL BREAKDOWN\n${('-').repeat(30)}\n`;
   ents.forEach(e=>{
-    const teamName=e.team==='hrops'?'HR Ops':(e.team==='onboarding'?'Onboarding':(e.team==='msd'?'MSD':'Requisitions'));
-    r+=`\n[${teamName}] ${e.name}\n  Total Time   : ${hms(e.tSec)}\n  Transactions : ${e.cnt}\n  Activities   : ${e.logs.length}\n  SLA Status   : ${e.ok?'✓ MET':'✗ BELOW'}\n`;
+    r+=`\n[${e.team==='hrops'?'HR Ops':'Onboarding'}] ${e.name}\n  Total Time   : ${hms(e.tSec)}\n  Transactions : ${e.cnt}\n  Activities   : ${e.logs.length}\n  SLA Status   : ${e.ok?'✓ MET':'✗ BELOW'}\n`;
     e.logs.forEach(l=>{r+=`    → ${l.activity} [${l.startTime||'?'}–${l.endTime||'running'}] ${hms(l.totalTimeSec)}\n`;});
   });
   r+=`\n${('=').repeat(50)}\nGenerated: ${estNow()} EST | Activity Tracker`;
@@ -1088,8 +945,7 @@ function dlCSV(){
   rows.forEach(r=>{
     const e=r._run?Math.floor((Date.now()-r.startTs)/1000):(r.totalTimeSec||0);
     const slaOK=r._aSec>=SLA_SEC;const cmnt=(r.comments||'').replace(/"/g,"'");
-    const teamName=r._team==='hrops'?'HR Ops':(r._team==='onboarding'?'Onboarding':(r._team==='msd'?'MSD':'Requisitions'));
-    csv+=`"${r._n}","${teamName}","${r.activity}","${r.category||''}","${r.date||''}","${r.startTime||''}","${r.endTime||'running'}",${r.count||0},${hms(e)},${r.count>0?hms(Math.round(e/r.count)):'—'},"${cmnt}",${slaOK?'Met':'Below'}\n`;
+    csv+=`"${r._n}","${r._team==='hrops'?'HR Ops':'Onboarding'}","${r.activity}","${r.category||''}","${r.date||''}","${r.startTime||''}","${r.endTime||'running'}",${r.count||0},${hms(e)},${r.count>0?hms(Math.round(e/r.count)):'—'},"${cmnt}",${slaOK?'Met':'Below'}\n`;
   });
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='report_'+today()+'.csv';a.click();
 }
@@ -1097,74 +953,12 @@ function dlSummaryCSV(){
   const fd=document.getElementById('s-date')?.value||today();
   let csv='Name,Team,Date,Total Time,Transactions,Activities,AHT,SLA,Deficit/Surplus\n';
   getFilteredData().forEach(([key,a])=>{
-    const logs=a.logs.filter(l=>l.date===fd&&(l.totalTimeSec||0)>0);
+    const logs=a.logs.filter(l=>l.date===fd);
     const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);const cnt=logs.reduce((s,e)=>s+(e.count||0),0);
     const ok=tSec>=SLA_SEC,def=tSec-SLA_SEC;
-    const teamName=a.team==='hrops'?'HR Ops':(a.team==='onboarding'?'Onboarding':(a.team==='msd'?'MSD':'Requisitions'));
-    csv+=`"${a.displayName}","${teamName}","${fd}",${hms(tSec)},${cnt},${logs.length},${cnt>0?hms(Math.round(tSec/cnt)):'—'},${ok?'Met':'Below'},${(def>=0?'+':'-')+hms(Math.abs(def))}\n`;
+    csv+=`"${a.displayName}","${a.team==='hrops'?'HR Ops':'Onboarding'}","${fd}",${hms(tSec)},${cnt},${logs.length},${cnt>0?hms(Math.round(tSec/cnt)):'—'},${ok?'Met':'Below'},${(def>=0?'+':'-')+hms(Math.abs(def))}\n`;
   });
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='summary_'+fd+'.csv';a.click();
-}
-
-// ── Remove Zero-Time Logs ─────────────────────────────────
-async function removeZeroTimeLogs(){
-  const fd=document.getElementById('s-date')?.value||today();
-  const statusEl=document.getElementById('zero-rm-status');
-  const btn=document.getElementById('zero-rm-btn');
-
-  // Collect all zero-time log refs across both teams for the selected date
-  let toDelete=[];
-  getFilteredData().forEach(([key,a])=>{
-    const team=a.team;
-    const assocKey=key.replace(team+'::','');
-    const fbKey=assocKey.replace(/[.#$[\]/\s]/g,'_');
-    a.logs.forEach((log,idx)=>{
-      if(log.date===fd&&(log.totalTimeSec||0)===0){
-        // We need the Firebase key, not array index — re-find via allData raw
-        toDelete.push({team,fbKey,log,name:a.displayName});
-      }
-    });
-  });
-
-  if(!toDelete.length){
-    statusEl.style.display='block';
-    statusEl.innerHTML='<span style="color:var(--accent)">✅ No zero-time logs found for '+fd+'</span>';
-    setTimeout(()=>{statusEl.style.display='none';},3000);
-    return;
-  }
-
-  if(!confirm(`Remove ${toDelete.length} zero-time log entries from ${fd}?\n\nThis cannot be undone.`)) return;
-
-  btn.disabled=true;
-  btn.textContent='⏳ Removing...';
-  statusEl.style.display='block';
-  statusEl.innerHTML='<span style="color:var(--muted)">Scanning Firebase for zero-time entries on '+fd+'...</span>';
-
-  let deleted=0,errors=0;
-  try{
-    for(const team of ALL_TEAMS){
-      const snap=await db.ref(team+'/associates').once('value');
-      const associates=snap.val()||{};
-      for(const [assocKey,assocData] of Object.entries(associates)){
-        const logs=assocData.logs||{};
-        for(const [logKey,log] of Object.entries(logs)){
-          if(log.date===fd&&(log.totalTimeSec||0)===0){
-            await db.ref(team+'/associates/'+assocKey+'/logs/'+logKey).remove();
-            deleted++;
-          }
-        }
-      }
-    }
-    logVer('Manager',`Removed ${deleted} zero-time log entries from ${fd}`);
-    statusEl.innerHTML=`<span style="color:var(--accent)">✅ Done — removed ${deleted} zero-time entries from ${fd}</span>`;
-    showToast('✅ Removed '+deleted+' zero-time logs','var(--accent)');
-    setTimeout(()=>{statusEl.style.display='none';},4000);
-  }catch(e){
-    statusEl.innerHTML=`<span style="color:var(--red)">❌ Error after ${deleted} deletions: ${e.message}</span>`;
-  }finally{
-    btn.disabled=false;
-    btn.textContent='🗑 Remove Zero-Time Logs';
-  }
 }
 
 // ── Tab switching ─────────────────────────────────────────
@@ -1181,8 +975,6 @@ function sw(tab){
   if(tab==='top')renderTop();
   if(tab==='low')renderLow();
   if(tab==='summary')renderSummary();
-  if(tab==='analytics')renderAnalytics();
-  if(tab==='fte')renderFTE();
 }
 
 
@@ -1208,6 +1000,18 @@ function rmMember(team,k,name){
   if(!confirm('Remove '+name+'?'))return;
   db.ref(team+'/team/members/'+k).remove().then(()=>logVer('Manager','Removed from '+team+': '+name));
 }
+
+function updateApprovalToggle(team){
+  const s=approvalSettingsByTeam[team]||{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC};
+  const b=document.getElementById('approval-toggle-'+team),cur=document.getElementById('approval-cur-'+team);
+  if(b)b.textContent=s.enabled?'Disable':'Enable';
+  if(cur)cur.textContent=(s.enabled?'Enabled':'Disabled')+' - Buffer: '+Math.round(s.bufferSec/60)+' minutes';
+}
+function saveApprovalToggle(team){
+  const s=approvalSettingsByTeam[team]||{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC};
+  db.ref(team+'/settings/approval').set({enabled:!s.enabled,bufferMinutes:Math.round(s.bufferSec/60)||5,updatedBy:currentUser?.name||'Manager',updatedAt:Date.now()});
+}
+
 function saveSLA(team){
   const h=parseInt(document.getElementById('sla-h-'+team).value)||8;
   db.ref(team+'/settings/sla').set(h).then(()=>{
@@ -1314,7 +1118,7 @@ async function migrateOldData(){
     let migrated=0, skipped=0;
 
     // Match each associate to their team based on hardcoded lists
-    const HROPS=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Madhankumar','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
+    const HROPS=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
     const ONBOARDING=['Aathirai Arumugam','Annie Hronec','Caio Silva','Cheyselle Cuaresma','Hanna Mae Ontong Pagdato','Karen Rodriguez','Luv Arora','Pooja Tripathi','Shubham Shyam','Sofia Romjin Orial','Sunil Kumar Muniraj','Victoria Isabel Busaco','Victoria Sousa'];
 
     for(const [key, data] of Object.entries(oldData)){
@@ -1375,7 +1179,7 @@ async function scanOldLogs(){
   cleanupData = [];
 
   const cutoff = getCutoffDate();
-  const teams = ALL_TEAMS;
+  const teams = ['hrops','onboarding'];
   let totalLogs = 0, totalSize = 0;
   const preview = [];
 
@@ -1415,30 +1219,24 @@ async function scanOldLogs(){
     // Build stats row
     const hropsCount = cleanupData.filter(x=>x.team==='hrops').length;
     const obCount    = cleanupData.filter(x=>x.team==='onboarding').length;
-    const msdCount   = cleanupData.filter(x=>x.team==='msd').length;
-    const reqsCount  = cleanupData.filter(x=>x.team==='requisitions').length;
     const oldestDate = cleanupData.reduce((m,x)=>x.date<m?x.date:m, cutoff);
 
     document.getElementById('cleanup-stats-row').innerHTML=`
       <div class="cs-box"><div class="cs-label">Logs to Delete</div><div class="cs-val red">${totalLogs}</div></div>
       <div class="cs-box"><div class="cs-label">HR Ops Logs</div><div class="cs-val warn">${hropsCount}</div></div>
       <div class="cs-box"><div class="cs-label">Onboarding Logs</div><div class="cs-val warn">${obCount}</div></div>
-      <div class="cs-box"><div class="cs-label">MSD Logs</div><div class="cs-val warn">${msdCount}</div></div>
-      <div class="cs-box"><div class="cs-label">Requisitions Logs</div><div class="cs-val warn">${reqsCount}</div></div>
       <div class="cs-box"><div class="cs-label">Older Than</div><div class="cs-val ok">${cutoff}</div></div>
+      <div class="cs-box"><div class="cs-label">Oldest Entry</div><div class="cs-val" style="color:var(--muted);font-size:.85rem">${oldestDate}</div></div>
     `;
 
     // Build preview list
     document.getElementById('cleanup-preview').innerHTML =
       '<div style="color:var(--warn);font-weight:600;margin-bottom:7px;font-size:.7rem">Associates with logs to be deleted:</div>' +
-      preview.map(p=>{
-        const tLabel=p.team==='hrops'?'HR Ops':(p.team==='onboarding'?'Onboarding':(p.team==='msd'?'MSD':'Requisitions'));
-        const tColor=p.team==='hrops'?'var(--a2)':(p.team==='onboarding'?'var(--purple)':(p.team==='msd'?'var(--warn)':'var(--a2)'));
-        return `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
-          <span>${p.name} <span style="font-size:.6rem;color:${tColor}">[${tLabel}]</span></span>
+      preview.map(p=>`
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>${p.name} <span style="font-size:.6rem;color:${p.team==='hrops'?'var(--a2)':'var(--purple)'}">[${p.team==='hrops'?'HR Ops':'Onboarding'}]</span></span>
           <span style="color:var(--red);font-weight:600">${p.count} logs</span>
-        </div>`;
-      }).join('');
+        </div>`).join('');
 
     document.getElementById('cleanup-results').style.display='block';
 
@@ -1504,375 +1302,6 @@ function showToast(msg,color){
   t.style.borderColor=c;t.style.color=c;t.style.opacity='1';t.style.transform='translateY(0)';
   document.getElementById('mgr-tdot').style.background=c;document.getElementById('mgr-tmsg').textContent=msg;
   clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';},3500);
-}
-
-// ── Analytics & FTE Helpers ──────────────────────────────
-function getWorkingDays(year, month) {
-  let count = 0;
-  let date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    let day = date.getDay();
-    if (day !== 0 && day !== 6) count++;
-    date.setDate(date.getDate() + 1);
-  }
-  return count;
-}
-
-function getWorkingDaysInYear(year) {
-  let count = 0;
-  for (let m = 0; month < 12; month++) {
-    count += getWorkingDays(year, m);
-  }
-  return count;
-}
-
-function renderAnalytics() {
-  const period = document.getElementById('ana-period').value;
-  const year = parseInt(document.getElementById('ana-year').value);
-  const data = getFilteredData();
-  
-  let labels = [], values = [], activityMap = {};
-  let totalSec = 0, workingDays = 0;
-
-  if (period === 'daily') {
-    // Last 30 days
-    const todayObj = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(todayObj);
-      d.setDate(d.getDate() - i);
-      const ds = d.toLocaleDateString('en-CA');
-      labels.push(ds);
-      let daySec = 0;
-      data.forEach(([, a]) => {
-        a.logs.filter(l => l.date === ds).forEach(l => {
-          daySec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(daySec / 3600);
-      totalSec += daySec;
-      if (d.getDay() !== 0 && d.getDay() !== 6) workingDays++;
-    }
-  } else if (period === 'monthly') {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    months.forEach((m, i) => {
-      labels.push(m);
-      let monSec = 0;
-      data.forEach(([, a]) => {
-        a.logs.filter(l => l.date && l.date.startsWith(`${year}-${pad(i + 1)}`)).forEach(l => {
-          monSec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(monSec / 3600);
-      totalSec += monSec;
-      workingDays += getWorkingDays(year, i);
-    });
-  } else if (period === 'annually') {
-    for (let y = year - 4; y <= year; y++) {
-      labels.push(y);
-      let yrSec = 0;
-      data.forEach(([, a]) => {
-        a.logs.filter(l => l.date && l.date.startsWith(`${y}`)).forEach(l => {
-          yrSec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(yrSec / 3600);
-      if (y === year) {
-        totalSec = yrSec;
-        for (let m = 0; m < 12; m++) workingDays += getWorkingDays(y, m);
-      }
-    }
-  } else if (period === 'quarterly') {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"];
-    quarters.forEach((q, i) => {
-      labels.push(q);
-      let qSec = 0;
-      const startMon = i * 3 + 1;
-      const endMon = (i + 1) * 3;
-      data.forEach(([, a]) => {
-        a.logs.forEach(l => {
-          if (!l.date || !l.date.startsWith(`${year}`)) return;
-          const m = parseInt(l.date.split('-')[1]);
-          if (m >= startMon && m <= endMon) {
-            qSec += (l.totalTimeSec || 0);
-            activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-          }
-        });
-      });
-      values.push(qSec / 3600);
-      totalSec += qSec;
-      for (let m = startMon - 1; m < endMon; m++) workingDays += getWorkingDays(year, m);
-    });
-  }
-
-  const reqHours = workingDays * 8;
-  const prodPct = reqHours > 0 ? (totalSec / 3600 / reqHours * 100).toFixed(1) : 0;
-
-  // Render Charts
-  if (anaChart) anaChart.destroy();
-  anaChart = new Chart(document.getElementById('ana-chart'), {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Production Hours',
-        data: values,
-        backgroundColor: 'rgba(0, 229, 160, 0.2)',
-        borderColor: 'rgba(0, 229, 160, 1)',
-        borderWidth: 2,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5b6478' } },
-        x: { grid: { display: false }, ticks: { color: '#5b6478' } }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-
-  const pieLabels = Object.keys(activityMap);
-  const pieValues = Object.values(activityMap).map(s => s / 3600);
-  if (anaPie) anaPie.destroy();
-  anaPie = new Chart(document.getElementById('ana-pie'), {
-    type: 'doughnut',
-    data: {
-      labels: pieLabels,
-      datasets: [{
-        data: pieValues,
-        backgroundColor: ['#00e5a0', '#0088ff', '#ffaa00', '#a855f7', '#ff4466', '#6366f1', '#ec4899', '#f59e0b'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: '#e8eaf0', font: { size: 10 } } } }
-    }
-  });
-
-  // Summary Cards
-  const summaryEl = document.getElementById('ana-summary');
-  summaryEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-      <div class="ms"><div class="ml">Production %</div><div class="mv ${prodPct >= 100 ? 'tg' : 'tr'}">${prodPct}%</div></div>
-      <div class="ms"><div class="ml">Total Hours</div><div class="mv">${(totalSec / 3600).toFixed(1)}h</div></div>
-      <div class="ms"><div class="ml">Req. Hours</div><div class="mv">${reqHours}h</div></div>
-      <div class="ms"><div class="ml">Work Days</div><div class="mv">${workingDays}</div></div>
-    </div>
-    <div style="margin-top:12px;font-size:.65rem;color:var(--muted);line-height:1.5;">
-      Formula: (Total Hours / (${workingDays} days × 8h)) × 100
-    </div>
-  `;
-}
-
-function renderFTE() {
-  const period = document.getElementById('fte-period').value;
-  const fromDate = document.getElementById('fte-from').value;
-  const toDate = document.getElementById('fte-to').value;
-  const data = getFilteredData();
-
-  let workingDays = 0;
-  let logs = [];
-
-  // Logic for counting working days in range
-  const start = new Date(fromDate);
-  const end = new Date(toDate);
-  let cur = new Date(start);
-  while(cur <= end) {
-    if(cur.getDay() !== 0 && cur.getDay() !== 6) workingDays++;
-    cur.setDate(cur.getDate() + 1);
-  }
-  if(workingDays === 0 && fromDate === toDate) workingDays = 1; // Minimum 1 for calculations if same day
-
-  data.forEach(([, a]) => {
-    logs.push(...a.logs.filter(l => l.date && l.date >= fromDate && l.date <= toDate));
-  });
-
-  const actMap = {};
-  let grandTotalSec = 0, grandCount = 0, grandTrans = 0;
-
-  logs.forEach(l => {
-    if (!actMap[l.activity]) actMap[l.activity] = { sec: 0, count: 0, trans: 0 };
-    actMap[l.activity].sec += (l.totalTimeSec || 0);
-    actMap[l.activity].count += 1;
-    actMap[l.activity].trans += (l.count || 0);
-    grandTotalSec += (l.totalTimeSec || 0);
-    grandCount += 1;
-    grandTrans += (l.count || 0);
-  });
-
-  const fteBase = workingDays * 8 * 3600;
-  const tbody = document.getElementById('fte-body');
-  const rows = Object.keys(actMap).map(name => {
-    const a = actMap[name];
-    const hours = a.sec / 3600;
-    const fte = fteBase > 0 ? (a.sec / fteBase) : 0;
-    const pct = grandTotalSec > 0 ? (a.sec / grandTotalSec * 100) : 0;
-    const avg = a.trans > 0 ? (a.sec / a.trans) : 0;
-    return { name, avg, count: a.count, hours, trans: a.trans, fte, pct };
-  }).sort((a, b) => b.hours - a.hours);
-
-  tbody.innerHTML = rows.map(r => `
-    <tr>
-      <td style="font-weight:500">${r.name}</td>
-      <td>${hms(Math.round(r.avg))}</td>
-      <td>${r.count}</td>
-      <td>${r.hours.toFixed(1)}h</td>
-      <td>${r.trans}</td>
-      <td><span class="rbadge2" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3);color:var(--purple)">${r.fte.toFixed(3)}</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;height:4px;background:var(--surface);border-radius:2px;overflow:hidden;">
-            <div style="width:${r.pct}%;height:100%;background:var(--accent)"></div>
-          </div>
-          <span style="font-size:.65rem;color:var(--muted);width:30px">${Math.round(r.pct)}%</span>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-
-  const totalFTE = fteBase > 0 ? (grandTotalSec / fteBase) : 0;
-  document.getElementById('fte-total-row').innerHTML = `
-    <td colspan="3">TOTAL (Working Days: ${workingDays})</td>
-    <td>${(grandTotalSec / 3600).toFixed(1)}h</td>
-    <td>${grandTrans}</td>
-    <td style="color:var(--accent);font-weight:800">${totalFTE.toFixed(2)}</td>
-    <td>100%</td>
-  `;
-}
-
-function dlFTECSV() {
-  const from = document.getElementById('fte-from').value;
-  const to = document.getElementById('fte-to').value;
-  const tbody = document.getElementById('fte-body');
-  const rows = tbody.querySelectorAll('tr');
-  
-  let csv = `FTE Report (${from} to ${to})\n`;
-  csv += 'Activity Name,Avg Time,Count,Hours Spent,Transactions,FTE,% of Total\n';
-  
-  rows.forEach(tr => {
-    const tds = tr.querySelectorAll('td');
-    if(tds.length < 7) return;
-    const name = `"${tds[0].innerText}"`;
-    const avg = tds[1].innerText;
-    const count = tds[2].innerText;
-    const hours = tds[3].innerText;
-    const trans = tds[4].innerText;
-    const fte = tds[5].innerText;
-    const pct = tds[6].innerText.split('\n')[1] || tds[6].innerText;
-    csv += `${name},${avg},${count},${hours},${trans},${fte},${pct}\n`;
-  });
-
-  const totalRow = document.getElementById('fte-total-row').querySelectorAll('td');
-  csv += `\nTOTAL, , ,${totalRow[1].innerText},${totalRow[2].innerText},${totalRow[3].innerText},100%\n`;
-
-  const blob = new Blob([csv], { type: 'text/csv' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `fte_report_${from}_to_${to}.csv`;
-  a.click();
-}
-
-// ── MANAGER: Force Stop Activity on behalf of associate ──────────────────────
-// WHERE: Detailed Log tab → "Action" column → appears only on LIVE (running) rows
-// HOW: Reads active session via REST, saves elapsed time as completed log, deletes active node
-async function forceStop(name, team, fbKey) {
-  if (!confirm('Force-stop activity for ' + name + '?\n\nElapsed time will be saved as a completed log entry.')) return;
-  try {
-    // Read the active session directly via REST (bypasses SDK cache)
-    const res = await fetch(FBURL + '/' + team + '/associates/' + fbKey + '/active.json');
-    if (!res.ok) { alert('Could not read session for ' + name); return; }
-    const active = await res.json();
-    if (!active) { alert(name + ' has no active session'); return; }
-
-    const endTs = Date.now();
-    const elapsed = Math.max(0, Math.floor((endTs - (active.startTs || endTs)) / 1000));
-    const endTime = new Date(endTs).toLocaleString('en-US', {timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:false});
-    const count = parseInt(active.count) || 0;
-
-    // Only save log if session is from TODAY — stale sessions are just deleted
-    const sessionDate = active.date || (active.startTs ? new Date(active.startTs).toLocaleDateString('en-CA',{timeZone:'America/New_York'}) : null);
-    const todayDate = new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-    if(sessionDate && sessionDate !== todayDate){
-      // Stale session from a previous day — just delete it, don't save corrupt log
-      await fetch(FBURL + '/' + team + '/associates/' + fbKey + '/active.json', {method: 'DELETE'});
-      logVer('Manager', 'Cleared stale session for ' + name + ' (was from ' + sessionDate + ')');
-      showToast('Stale session cleared for ' + name);
-      return;
-    }
-    // Build completed log entry — always use today's date
-    const entry = Object.assign({}, active, {
-      endTime: endTime, endTs: endTs, count: count,
-      date: todayDate,
-      totalTimeSec: elapsed, status: 'done',
-      aht: count > 0 ? Math.round(elapsed / count) : elapsed,
-      forceStopped: true, forceStoppedBy: 'Manager'
-    });
-
-    // Save log via REST POST
-    const logRes = await fetch(FBURL + '/' + team + '/associates/' + fbKey + '/logs.json', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(entry)
-    });
-    if (!logRes.ok) { alert('Error saving log for ' + name); return; }
-
-    // Delete active session via REST DELETE
-    await fetch(FBURL + '/' + team + '/associates/' + fbKey + '/active.json', {method: 'DELETE'});
-
-    logVer('Manager', 'Force-stopped: ' + name + ' (' + team + ') — ' + (active.activity || '') + ' — ' + hms(elapsed));
-    showToast('✅ Stopped: ' + name + ' — ' + hms(elapsed));
-  } catch(e) {
-    alert('Force-stop error: ' + e.message);
-    console.error('[ForceStop]', e);
-  }
-}
-
-</script>
-
-<script>
-function isValidActiveUser(user){
- if(!user||!user.startTime||!user.activity) return false;
- const e = Date.now()-user.startTime;
- if(isNaN(e)||e<=5000) return false;
- return true;
-}
-
-function renderCards(data){
- const container=document.getElementById("cards");
- if(container) container.innerHTML="";
- Object.keys(data||{}).forEach(n=>{
-  const u=data[n];
-  if(!isValidActiveUser(u)) return;
-  if(window.renderCard) renderCard(u);
- });
-}
-
-function cleanupZeroUsers(){
- const ref=firebase.database().ref("active");
- ref.once("value").then(s=>{
-  const d=s.val()||{};
-  let removed=0;
-  Object.keys(d).forEach(n=>{
-   const u=d[n];
-   if(!u||!u.startTime||!u.activity){
-    ref.child(n).remove(); removed++; return;
-   }
-   const e=Date.now()-u.startTime;
-   if(isNaN(e)||e<=5000){
-    ref.child(n).remove(); removed++;
-   }
-  });
-  alert(removed+" users removed");
- });
 }
 </script>
 </body>

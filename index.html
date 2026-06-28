@@ -1,59 +1,166 @@
-
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Home</title>
-
-<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
-<meta http-equiv="Pragma" content="no-cache"/>
-<meta http-equiv="Expires" content="0"/>
-
-
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Activity Tracker Login</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-
-<script>
-const firebaseConfig = {
-  apiKey: "AIzaSyD2Mn6TRxTs1umzd1MDvurt3FkVeD1vVho",
-  authDomain: "activity-tracker-40c7a.firebaseapp.com",
-  databaseURL: "https://activity-tracker-40c7a-default-rtdb.firebaseio.com",
-  projectId: "activity-tracker-40c7a",
-  storageBucket: "activity-tracker-40c7a.firebasestorage.app",
-  messagingSenderId: "126687788390",
-  appId: "1:126687788390:web:36e66214b0137f78395ca7",
-  measurementId: "G-RBCLS50YZY"
-};
-
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
-
-// REALTIME SYNC
-db.ref('team').on('value', snap => {
-  const data = snap.val() || {};
-  console.log("LIVE DATA:", data);
-});
-</script>
-
-
+<script src="shared-access.js"></script>
+<style>
+:root{--bg:#080b10;--surface:#10151f;--card:#151b27;--border:#263044;--accent:#00e5a0;--a2:#0088ff;--purple:#a855f7;--red:#ff4466;--text:#e8eaf0;--muted:#7b8496;}
+*{box-sizing:border-box;margin:0;padding:0}
+body{min-height:100vh;background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;display:grid;place-items:center;padding:24px;background-image:radial-gradient(ellipse at 15% 10%,rgba(0,229,160,.08),transparent 42%),radial-gradient(ellipse at 85% 90%,rgba(0,136,255,.08),transparent 42%)}
+.card{width:100%;max-width:560px;background:var(--card);border:1px solid var(--border);border-radius:12px;padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.42)}
+.logo{font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;color:var(--accent);margin-bottom:4px}
+.logo span{color:var(--text)}
+p{color:var(--muted);font-size:.78rem;line-height:1.6;margin-bottom:18px}
+.mode{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.mode button{margin:0;background:transparent;color:var(--muted);border:1px solid var(--border)}
+.mode button.active{background:rgba(0,229,160,.12);border-color:var(--accent);color:var(--accent)}
+label{display:block;font-size:.62rem;letter-spacing:1.4px;text-transform:uppercase;color:var(--muted);margin:13px 0 6px}
+input{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:11px 12px;font-family:'DM Mono',monospace;outline:none}
+input:focus{border-color:var(--accent)}
+button{width:100%;margin-top:18px;background:var(--accent);border:0;border-radius:8px;color:#00110c;padding:12px;font-family:'Syne',sans-serif;font-weight:800;cursor:pointer}
+button:disabled{opacity:.45;cursor:wait}
+.err{min-height:18px;margin-top:12px;color:var(--red);font-size:.72rem}
+.hint{margin-top:16px;border-top:1px solid var(--border);padding-top:14px;color:var(--muted);font-size:.68rem;line-height:1.6}
+.signup-only{display:none}
+.team-section{margin-top:12px}
+.team-label{font-size:.59rem;letter-spacing:2px;text-transform:uppercase;padding:6px 0 8px;margin-bottom:7px;border-bottom:1px solid var(--border)}
+.team-label.hrops{color:var(--a2)}.team-label.onboarding{color:var(--purple)}
+.ngrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;max-height:160px;overflow-y:auto}
+.nopt{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 12px;cursor:pointer;transition:all .2s;font-size:.74rem;display:flex;align-items:center;gap:8px}
+.nopt:hover{border-color:var(--accent);background:rgba(0,229,160,.05)}
+.nopt.sel{border-color:var(--accent);background:rgba(0,229,160,.1);color:var(--accent)}
+.nav{width:26px;height:26px;border-radius:50%;background:rgba(0,229,160,.15);border:1px solid rgba(0,229,160,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.6rem;color:var(--accent);flex-shrink:0}
+</style>
 </head>
 <body>
-<h1>Home</h1>
+  <main class="card">
+    <div class="logo">Activity<span>Tracker</span></div>
+    <p id="intro">Sign in with the email and password you used when you signed up.</p>
+    <div class="mode">
+      <button id="signin-tab" class="active" type="button" onclick="setMode('signin')">Sign In</button>
+      <button id="signup-tab" type="button" onclick="setMode('signup')">Sign Up</button>
+    </div>
+    <form id="login-form">
+      <label for="username">Email</label>
+      <input id="username" type="email" autocomplete="email" required/>
+      <label for="password">Password</label>
+      <input id="password" type="password" autocomplete="current-password" minlength="6" required/>
 
-<input id="name" placeholder="Enter name"/>
-<button onclick="add()">Add to HR Ops</button>
+      <div class="signup-only" id="signup-fields">
+        <div class="team-section">
+          <div class="team-label hrops">HR Operations</div>
+          <div class="ngrid" id="ngrid-hrops"><div style="color:var(--muted);font-size:.75rem;padding:10px;grid-column:1/-1">Loading...</div></div>
+        </div>
+        <div class="team-section">
+          <div class="team-label onboarding">Onboarding Specialist</div>
+          <div class="ngrid" id="ngrid-onboarding"><div style="color:var(--muted);font-size:.75rem;padding:10px;grid-column:1/-1">Loading...</div></div>
+        </div>
+      </div>
+
+      <button id="login-btn" type="submit">Login</button>
+      <div class="err" id="err"></div>
+    </form>
+    <div class="hint">A sign-up account is permanently linked to the selected associate name. On later sign-ins, the saved profile is used automatically and the name cannot be switched.</div>
+  </main>
 
 <script>
-function add(){
-  const name = document.getElementById('name').value;
-  if(!name) return alert("Enter name");
-  db.ref('team/hrops/' + name).set(true);
-}
+const FB={apiKey:"AIzaSyD2Mn6TRxTs1umzd1MDvurt3FkVeD1vVho",authDomain:"activity-tracker-40c7a.firebaseapp.com",databaseURL:"https://activity-tracker-40c7a-default-rtdb.firebaseio.com",projectId:"activity-tracker-40c7a",storageBucket:"activity-tracker-40c7a.firebasestorage.app",messagingSenderId:"126687788390",appId:"1:126687788390:web:36e66214b0137f78395ca7"};
+firebase.initializeApp(FB);
+const db=firebase.database();
 
-function remove(name){
-  db.ref('team/hrops/' + name).remove();
+const HROPS_MEMBERS=["Alan Benjamin","Anubha Priyam","Archana Gautam","Aswani R","Hariharan A","Latha Shinde","Leonie Gomes","Pavithra Mahesh","Periya Robicca","Ramesh Kumar Selvaraj","Sayee Balasubramanian","Sneha Thomas","Thirisha Manoharan","Vinish Navinkumar","Arjun MP","Ingrid Pope","Banupriya Balakrishnan","Yogeshwaran Rajendran","Rihana Hussain","Rathina Sudhan","Azhar Taj"];
+const ONBOARDING_MEMBERS=["Aathirai Arumugam","Annie Hronec","Archana Gautam","Caio Silva","Cheyselle Cuaresma","Hanna Mae Ontong Pagdato","Karen Rodriguez","Luv Arora","Pooja Tripathi","Shubham Shyam","Sofia Romjin Orial","Sunil Kumar Muniraj","Victoria Isabel Busaco","Victoria Sousa"];
+
+let mode='signin';
+let pickedName='', pickedTeam='';
+const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const cleanEmail=v=>v.trim().toLowerCase();
+const claimKey=(team,name)=>team+'_'+atSan(name).toLowerCase();
+
+function routeFor(user){
+  if(user.role==='manager')return 'manager.html';
+  if(user.role==='lead'&&user.team==='onboarding')return 'lead-onboarding.html';
+  if(user.role==='lead')return 'lead-hrops.html';
+  return 'associate.html';
 }
+function setMode(next){
+  mode=next;
+  document.getElementById('signin-tab').classList.toggle('active',mode==='signin');
+  document.getElementById('signup-tab').classList.toggle('active',mode==='signup');
+  document.getElementById('signup-fields').style.display=mode==='signup'?'block':'none';
+  document.getElementById('login-btn').textContent=mode==='signup'?'Create Account':'Login';
+  document.getElementById('intro').textContent=mode==='signup'?'Create your account and bind it to your own associate name.':'Sign in with the email and password you used when you signed up.';
+  document.getElementById('err').textContent='';
+  if(mode==='signup')loadLoginGrids();
+}
+function fillNames(path,defArr,elId,team){
+  db.ref(path).once('value',s=>{
+    const names=s.val()?Object.values(s.val()):defArr;
+    renderNames(names,elId,team);
+  }).catch(()=>renderNames(defArr,elId,team));
+}
+function renderNames(names,elId,team){
+  document.getElementById(elId).innerHTML=names.sort().map(n=>
+    `<div class="nopt" data-n="${n}" data-t="${team}" onclick="pickName(this)"><div class="nav">${ini(n)}</div>${n}</div>`
+  ).join('');
+}
+function loadLoginGrids(){
+  fillNames('hrops/team/members',HROPS_MEMBERS,'ngrid-hrops','hrops');
+  fillNames('onboarding/team/members',ONBOARDING_MEMBERS,'ngrid-onboarding','onboarding');
+}
+function pickName(el){
+  document.querySelectorAll('.nopt').forEach(x=>x.classList.remove('sel'));
+  el.classList.add('sel');
+  pickedName=el.dataset.n;
+  pickedTeam=el.dataset.t;
+}
+function normalizeProfile(uid,email,profile){
+  const role=String(profile.role||'associate').toLowerCase();
+  const team=String(profile.team||'hrops').toLowerCase().replace(/\s+/g,'').includes('onboarding')?'onboarding':'hrops';
+  return {uid,email,username:email,name:profile.name||email,role,team};
+}
+async function loadProfile(cred,email){
+  const profileSnap=await db.ref('users/'+cred.user.uid).once('value');
+  const profile=profileSnap.val();
+  if(!profile||!profile.role)throw new Error('No profile found for this account. Please sign up first or contact your manager.');
+  return normalizeProfile(cred.user.uid,email,profile);
+}
+async function createAssociateProfile(email,password){
+  if(!pickedName||!pickedTeam)throw new Error('Select your own associate name before creating the account.');
+  const claimRef=db.ref('userNameClaims/'+claimKey(pickedTeam,pickedName));
+  const claim=await claimRef.once('value');
+  if(claim.exists())throw new Error('This associate name is already linked to another account.');
+  const cred=await firebase.auth().createUserWithEmailAndPassword(email,password);
+  const profile={email,name:pickedName,team:pickedTeam,role:'associate',createdAt:Date.now()};
+  await db.ref().update({
+    ['users/'+cred.user.uid]:profile,
+    ['userNameClaims/'+claimKey(pickedTeam,pickedName)]:cred.user.uid
+  });
+  return normalizeProfile(cred.user.uid,email,profile);
+}
+document.getElementById('login-form').addEventListener('submit',async e=>{
+  e.preventDefault();
+  const btn=document.getElementById('login-btn'), err=document.getElementById('err');
+  btn.disabled=true;err.textContent='';
+  try{
+    const email=cleanEmail(document.getElementById('username').value);
+    const password=document.getElementById('password').value;
+    const user=mode==='signup'
+      ? await createAssociateProfile(email,password)
+      : await loadProfile(await firebase.auth().signInWithEmailAndPassword(email,password),email);
+    atSetUser(user);
+    location.href=routeFor(user);
+  }catch(ex){
+    err.textContent=ex.message||'Unable to continue. Check the details and try again.';
+    btn.disabled=false;
+  }
+});
 </script>
-
 </body>
 </html>

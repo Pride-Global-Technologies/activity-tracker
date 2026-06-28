@@ -7,7 +7,6 @@
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root{--bg:#06080d;--surface:#0d1117;--card:#111620;--border:#1e2533;--accent:#0088ff;--red:#ff4466;--warn:#ffaa00;--purple:#a855f7;--green:#00e5a0;--text:#e8eaf0;--muted:#5b6478;}
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -54,7 +53,7 @@ tbody tr{border-bottom:1px solid rgba(30,37,51,.7);}
 tbody tr:hover{background:rgba(255,255,255,.02);}
 tbody td{padding:8px 12px;white-space:nowrap;}
 tfoot td{padding:9px 12px;border-top:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:600;}
-.sg{color:var(--green);font-weight:500;}.sr{color:var(--red);font-weight:500;}
+.sg{color:var(--green);font-weight:500;}.sr{color:var(--red);font-weight:500;}.sw{color:var(--warn);font-weight:500;}
 .tg{color:var(--green);}.tr{color:var(--red);}
 .rbadge2{display:inline-flex;align-items:center;gap:4px;background:rgba(0,136,255,.1);border:1px solid rgba(0,136,255,.3);color:var(--accent);padding:1px 7px;border-radius:3px;font-size:.59rem;}
 .blink{animation:bl 1s step-end infinite;}
@@ -96,6 +95,7 @@ textarea:focus{border-color:var(--accent);}
   <div class="hdr-r">
     <div class="clock" id="clock">--:--:-- EST</div>
     <div class="live-ind"><div class="ldot"></div>LIVE</div>
+    <button class="bsm" onclick="atLogout()">Logout</button>
     <div class="rbadge">🔵 HR OPS LEAD</div>
   </div>
 </header>
@@ -108,13 +108,15 @@ textarea:focus{border-color:var(--accent);}
     <div class="sc r"><div class="sl">Below SLA</div><div class="sv r" id="st-below">0</div></div>
     <div class="sc p"><div class="sl">Team Total</div><div class="sv p" id="st-tot">0:00</div></div>
   </div>
+<div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
+    <div class="tbar-l"><span class="stitle">SLA Approval Enforcement</span><span id="approval-state" style="color:var(--muted);font-size:.72rem">Loading...</span></div>
+    <button class="bsm green" id="approval-toggle" onclick="saveApprovalToggle()">Toggle</button>
+  </div>
   <div class="tabs">
     <div class="tab active" id="tab-detail"  onclick="sw('detail')">📋 Detailed Log</div>
     <div class="tab"        id="tab-summary" onclick="sw('summary')">👥 Summary</div>
     <div class="tab"        id="tab-top"     onclick="sw('top')">🏆 Top Performers</div>
     <div class="tab"        id="tab-low"     onclick="sw('low')">⚠️ Needs Attention</div>
-    <div class="tab"        id="tab-analytics" onclick="sw('analytics')">📊 Performance Analytics</div>
-    <div class="tab"        id="tab-fte"       onclick="sw('fte')">📈 FTE Analysis</div>
     <div class="tab"        id="tab-eod"     onclick="sw('eod')">📧 EOD Report</div>
   </div>
 
@@ -147,7 +149,7 @@ textarea:focus{border-color:var(--accent);}
       </div>
       <div class="tscroll">
         <table>
-          <thead><tr><th onclick="sortBy('name')">Name</th><th>Activity</th><th>Category</th><th>Date</th><th>Start (EST)</th><th>End (EST)</th><th>Count</th><th onclick="sortBy('time')">Time Taken</th><th>AHT</th><th>Comments</th><th>SLA</th></tr></thead>
+          <thead><tr><th onclick="sortBy('name')">Name</th><th>Activity</th><th>Category</th><th>Date</th><th>Start (EST)</th><th>End (EST)</th><th>Count</th><th onclick="sortBy('time')">Time Taken</th><th>AHT</th><th>Comments</th><th>SLA / Approval</th><th>Action</th></tr></thead>
           <tbody id="detail-body"><tr><td colspan="11"><div class="empty"><h3>Connecting...</h3></div></td></tr></tbody>
         </table>
       </div>
@@ -161,12 +163,8 @@ textarea:focus{border-color:var(--accent);}
         <select id="s-sort" onchange="renderSummary()"><option value="name">Sort: Name A–Z</option><option value="high">Highest Hours</option><option value="low">Lowest Hours</option></select>
         <div class="drange"><span>Date:</span><input type="date" id="s-date" onchange="renderSummary()"/><button class="bsm" onclick="document.getElementById('s-date').value=today();renderSummary()">Today</button></div>
       </div>
-      <div style="display:flex;gap:7px;flex-wrap:wrap;">
-        <button class="bsm" style="border-color:var(--warn);color:var(--warn)" onclick="removeZeroTimeLogs()" id="zero-rm-btn" title="Permanently deletes all 0-second log entries for the selected date">🗑 Remove Zero-Time Logs</button>
-        <button class="bsm green" onclick="dlSummaryCSV()">⬇ Summary CSV</button>
-      </div>
+      <button class="bsm green" onclick="dlSummaryCSV()">⬇ Summary CSV</button>
     </div>
-    <div id="zero-rm-status" style="display:none;margin-bottom:10px;background:var(--card);border:1px solid var(--border);border-radius:9px;padding:10px 14px;font-size:.72rem;"></div>
     <div class="pgrid" id="sum-grid"></div>
   </div>
 
@@ -201,61 +199,6 @@ textarea:focus{border-color:var(--accent);}
       <textarea id="eod-txt" placeholder="Click 'Generate Report'..."></textarea>
     </div>
   </div>
-
-  <!-- PERFORMANCE ANALYTICS -->
-  <div id="panel-analytics" class="panel">
-    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
-      <div class="tbar-l">
-        <select id="ana-period" onchange="renderAnalytics()"><option value="daily">Daily</option><option value="monthly">Monthly</option><option value="quarterly">Quarterly</option><option value="annually">Annually</option></select>
-        <input type="number" id="ana-year" value="2026" style="width:80px" onchange="renderAnalytics()"/>
-      </div>
-    </div>
-    <div class="pgrid" style="grid-template-columns: 2fr 1fr;">
-      <div class="pc" style="grid-column: 1 / span 2;">
-        <div class="ph"><div class="pn">Productivity Trend</div></div>
-        <div style="height: 300px;"><canvas id="ana-chart"></canvas></div>
-      </div>
-      <div class="pc">
-        <div class="ph"><div class="pn">Activity Distribution</div></div>
-        <div style="height: 250px;"><canvas id="ana-pie"></canvas></div>
-      </div>
-      <div class="pc">
-        <div class="ph"><div class="pn">Production Summary</div></div>
-        <div id="ana-summary"></div>
-      </div>
-    </div>
-  </div>
-
-  <!-- FTE ANALYSIS -->
-  <div id="panel-fte" class="panel">
-    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
-      <div class="tbar-l">
-        <select id="fte-period" onchange="renderFTE()"><option value="daily">Daily</option><option value="monthly">Monthly</option><option value="annually">Annually</option></select>
-        <input type="date" id="fte-date" onchange="renderFTE()"/>
-      </div>
-    </div>
-    <div class="twrap">
-      <div class="tscroll">
-        <table>
-          <thead>
-            <tr>
-              <th>Activity Name</th>
-              <th>Avg Time</th>
-              <th>Count</th>
-              <th>Hours Spent</th>
-              <th>Transactions</th>
-              <th>FTE</th>
-              <th>% of Total</th>
-            </tr>
-          </thead>
-          <tbody id="fte-body"></tbody>
-          <tfoot>
-            <tr id="fte-total-row"></tr>
-          </tfoot>
-        </table>
-      </div>
-    </div>
-  </div>
 </div>
 
 <script>
@@ -264,108 +207,39 @@ firebase.initializeApp(FB);
 const db=firebase.database();
 
 const TEAM='hrops', TEAM_LABEL='HR Ops';
-let allData={}, SLA_HOURS=8, SLA_SEC=8*3600, actsData=[], sortFld='name', sortDir=1;
+let allData={}, SLA_HOURS=8, SLA_SEC=8*3600, actsData=[], sortFld='name', sortDir=1, approvalSettings={enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC}, currentUser=null;
 let summaryTickIv=null, perfTickIv=null;
-let anaChart=null, anaPie=null;
 
 const pad=n=>String(n).padStart(2,'0');
 const hms=s=>{s=Math.max(0,s);return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60);};
 const estNow=()=>new Date().toLocaleString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
 const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-// ── Guard against stale active sessions from previous days ──
-function isActiveToday(active){
-  if(!active||!active.startTs) return false;
-  const d=new Date(active.startTs).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-  return d===today();
-}
 
-window.onload=async function(){
+window.onload=function(){
+  currentUser=atRequire(['lead'],TEAM);
+  if(!currentUser)return;
   setInterval(()=>{document.getElementById('clock').textContent=estNow()+' EST';},1000);
   document.getElementById('eod-date').value=today();
   document.getElementById('s-date').value=today();
   setDP('today');
-  await forceKillStaleActiveSessions();
   fetchAll(); loadSettings(); loadActs();
   setInterval(()=>{renderDetail();updateTopStats();updateMgrPill();},10000);
-  setInterval(forceKillStaleActiveSessions,5*60*1000);
 };
 
-const FBURL='https://activity-tracker-40c7a-default-rtdb.firebaseio.com';
-async function forceKillStaleActiveSessions(){
-  try{
-    const res=await fetch(FBURL+'/'+TEAM+'/associates.json');
-    if(!res.ok) return;
-    const raw=await res.json();
-    if(!raw) return;
-    for(const [k,v] of Object.entries(raw)){
-      if(!v||!v.active) continue;
-      const ts=v.active.startTs;
-      if(!ts){
-        await fetch(FBURL+'/'+TEAM+'/associates/'+k+'/active.json',{method:'DELETE'});
-        continue;
-      }
-      const d=new Date(ts).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-      if(d!==today()){
-        await fetch(FBURL+'/'+TEAM+'/associates/'+k+'/active.json',{method:'DELETE'});
-        console.log('[ForceKill] stale removed:',k,'was',d);
-      }
-    }
-  }catch(e){console.log('[ForceKill] error:',e.message);}
-}
-
-
-// ── Sanitise a raw log from Firebase ──────────────────────────────────────────
-// Ensures every log has a valid date string (YYYY-MM-DD). Logs that came from
-// migration without a date field (or with an empty/null date) are stamped with
-// the date derived from their startTs timestamp. If startTs is also missing the
-// log is dropped. Numeric fields are coerced to integers so null/undefined never
-// corrupts time sums.
-function sanitiseLog(log){
-  if(!log||typeof log!=='object') return null;
-  // Derive date from startTs if date field is absent/empty
-  let d=log.date;
-  if(!d||typeof d!=='string'||!/^\d{4}-\d{2}-\d{2}$/.test(d)){
-    if(log.startTs){
-      d=new Date(log.startTs).toLocaleDateString('en-CA',{timeZone:'America/New_York'});
-    } else if(log.startTime){
-      // startTime is a string like "02:30:45 PM" — can't derive date from it alone
-      // Drop logs that have no date and no startTs
-      return null;
-    } else {
-      return null;
-    }
-  }
-  return {
-    ...log,
-    date: d,
-    totalTimeSec: parseInt(log.totalTimeSec)||0,
-    count:        parseInt(log.count)||0,
-    aht:          parseInt(log.aht)||0,
-  };
-}
-function sanitiseLogs(logsObj){
-  if(!logsObj) return [];
-  return Object.values(logsObj).map(sanitiseLog).filter(Boolean);
-}
 function fetchAll(){
   db.ref(TEAM+'/associates').on('value',snap=>{
     allData={};
     const raw=snap.val()||{};
     Object.entries(raw).forEach(([k,v])=>{
       const name=(v.meta&&v.meta.name)||k.replace(/_/g,' ');
-      // ── Auto-clear stale active sessions from Firebase ──
-      let activeSession=v.active||null;
-      if(activeSession&&!isActiveToday(activeSession)){
-        fetch(FBURL+'/'+TEAM+'/associates/'+k+'/active.json',{method:'DELETE'});
-        activeSession=null;
-      }
-      allData[name]={logs:sanitiseLogs(v.logs),active:activeSession,displayName:name};
+      allData[name]={logs:v.logs?Object.entries(v.logs).map(([lk,lv])=>({...lv,_key:lk,_path:TEAM+'/associates/'+k+'/logs/'+lk})):[],active:v.active||null,displayName:name,_assocKey:k};
     });
     updateTopStats();renderDetail();renderSummary();renderTop();renderLow();updateMgrPill();
   });
 }
 function loadSettings(){
   db.ref(TEAM+'/settings/sla').on('value',s=>{const h=s.val()||8;SLA_HOURS=h;SLA_SEC=h*3600;});
+  atLoadApprovalSettings(db,TEAM,s=>{approvalSettings=s;updateApprovalToggle();renderDetail();});
 }
 function loadActs(){
   const DEF=[
@@ -408,9 +282,9 @@ function rebuildCatFilter(){
 function updateTopStats(){
   const t=today();let active=0,acts=0,sec=0,cnt=0,met=0,below=0;
   Object.values(allData).forEach(a=>{
-    if(a.active&&isActiveToday(a.active))active++;
+    if(a.active)active++;
     const tLogs=a.logs.filter(l=>l.date===t);acts+=tLogs.length;
-    const s=tLogs.reduce((x,e)=>x+(parseInt(e.totalTimeSec)||0),0);const c=tLogs.reduce((x,e)=>x+(parseInt(e.count)||0),0);
+    const s=tLogs.reduce((x,e)=>x+(e.totalTimeSec||0),0);const c=tLogs.reduce((x,e)=>x+(e.count||0),0);
     sec+=s;cnt+=c;if(tLogs.length>0){if(s>=SLA_SEC)met++;else below++;}
   });
   document.getElementById('st-active').textContent=active;
@@ -422,7 +296,7 @@ function updateTopStats(){
 }
 function updateMgrPill(){
   const pill=document.getElementById('mgr-pill'),dot=document.getElementById('mgr-dot'),pn=document.getElementById('mgr-pname');
-  const active=Object.values(allData).filter(a=>a.active&&isActiveToday(a.active));
+  const active=Object.values(allData).filter(a=>a.active);
   if(active.length){pill.className='pill';dot.className='pdot';pn.textContent=active.length+' active: '+active.slice(0,3).map(a=>a.displayName.split(' ')[0]).join(', ')+(active.length>3?'…':'');}
   else{pill.className='pill idle';dot.className='pdot idle';pn.textContent='No one active';}
 }
@@ -437,15 +311,15 @@ function getRows(){
   Object.values(allData).forEach(a=>{
     if(nm&&!a.displayName.toLowerCase().includes(nm))return;
     const isToday=dFrom===today();
-    if(a.active&&isToday&&isActiveToday(a.active)){
+    if(a.active&&isToday){
       const r={...a.active,_n:a.displayName,_run:true};
       r._aSec=Math.floor((Date.now()-a.active.startTs)/1000)+a.logs.filter(l=>l.date===today()).reduce((s,e)=>s+(e.totalTimeSec||0),0);
       if((cat==='all'||r.category===cat)&&(sla==='all')&&(stat==='all'||stat==='running'))rows.push(r);
     }
     a.logs.forEach(e=>{
-      const d=e.date;if(!d||d<dFrom||d>dTo)return;
+      const d=e.date||today();if(d<dFrom||d>dTo)return;
       if(cat!=='all'&&e.category!==cat)return;
-      const totSec=a.logs.filter(l=>l.date===d).reduce((s,x)=>s+(parseInt(x.totalTimeSec)||0),0);
+      const totSec=a.logs.filter(l=>(l.date||today())===d).reduce((s,x)=>s+(x.totalTimeSec||0),0);
       const slaOK=totSec>=SLA_SEC;
       if(sla==='met'&&!slaOK)return;if(sla==='below'&&slaOK)return;
       if(stat==='running')return;
@@ -457,14 +331,35 @@ function getRows(){
 }
 function renderDetail(){
   const rows=getRows();const tbody=document.getElementById('detail-body');
-  if(!rows.length){tbody.innerHTML='<tr><td colspan="11"><div class="empty"><h3>No data</h3></div></td></tr>';return;}
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="12"><div class="empty"><h3>No data</h3></div></td></tr>';return;}
   tbody.innerHTML=rows.map(r=>{
     const e=r._run?Math.floor((Date.now()-r.startTs)/1000):(r.totalTimeSec||0);
     const slaOK=r._aSec>=SLA_SEC;
     const cmnt=r.comments?`<span style="color:var(--muted);font-size:.63rem" title="${r.comments}">💬 ${r.comments.length>18?r.comments.slice(0,18)+'…':r.comments}</span>`:'—';
-    return `<tr><td style="font-weight:500">${r._n}</td><td>${r.activity}</td><td style="font-size:.62rem;color:var(--muted)">${r.category||'—'}</td><td style="font-size:.62rem">${r.date||'—'}</td><td>${r.startTime||'—'}</td><td>${r._run?'<span class="rbadge2"><span class="blink">●</span> LIVE</span>':r.endTime||'—'}</td><td>${r.count||0}</td><td style="font-weight:500">${hms(e)}</td><td>${r.count>0?hms(Math.round(e/r.count)):'—'}</td><td>${cmnt}</td><td class="${slaOK?'sg':'sr'}">${slaOK?'✓ Met':'✗ Below'}</td></tr>`;
+    const ts=atTaskStatus(r,e,approvalSettings);
+    const actions=approvalControls(r);
+    return `<tr><td style="font-weight:500">${r._n}</td><td>${r.activity}</td><td style="font-size:.62rem;color:var(--muted)">${r.category||'—'}</td><td style="font-size:.62rem">${r.date||'—'}</td><td>${r.startTime||'—'}</td><td>${r._run?'<span class="rbadge2"><span class="blink">●</span> LIVE</span>':r.endTime||'—'}</td><td>${r.count||0}</td><td style="font-weight:500">${hms(e)}</td><td>${r.count>0?hms(Math.round(e/r.count)):'—'}</td><td>${cmnt}</td><td class="${ts.cls}">${ts.text}</td><td>${actions}</td></tr>`;
   }).join('');
 }
+
+function updateApprovalToggle(){
+  const s=document.getElementById('approval-state'),b=document.getElementById('approval-toggle');
+  if(s)s.textContent=approvalSettings.enabled?'Enabled - tasks over AHT + '+Math.round(approvalSettings.bufferSec/60)+' min need Lead approval':'Disabled - breaches are informational only';
+  if(b)b.textContent=approvalSettings.enabled?'Disable':'Enable';
+}
+function saveApprovalToggle(){
+  db.ref(TEAM+'/settings/approval').set({enabled:!approvalSettings.enabled,bufferMinutes:Math.round(approvalSettings.bufferSec/60)||5,updatedBy:currentUser?.name||'Lead',updatedAt:Date.now()});
+}
+function approvalControls(r){
+  if(r._run||!r._path)return '-';
+  const ts=atTaskStatus(r,r.totalTimeSec,approvalSettings);
+  if(!ts.pending&&r.approvalStatus!=='pending')return '-';
+  return `<button class="bsm green" onclick="approveLog('${r._path}','approved')">Approve</button> <button class="bsm" onclick="approveLog('${r._path}','rejected')">Reject</button>`;
+}
+function approveLog(path,status){
+  db.ref(path).update(atApprovalPayload(currentUser,status)).then(()=>renderDetail());
+}
+
 function sortBy(f){sortFld=f==='name'?'name':'time';sortDir*=-1;renderDetail();}
 function setDP(p){
   const t=today(),now=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
@@ -485,19 +380,13 @@ function renderSummary(){
   if(!ents.length){grid.innerHTML='<div class="empty"><h3>No data yet</h3></div>';return;}
   const isToday=fd===today();
   let cards=ents.map(a=>{
-    // Filter out zero-time logs so they don't pollute the summary
-    const logs=a.logs.filter(l=>l.date===fd&&(parseInt(l.totalTimeSec)||0)>0);
-    const allLogsForDay=a.logs.filter(l=>l.date===fd);
-    const cSec=logs.reduce((s,e)=>s+(parseInt(e.totalTimeSec)||0),0);
-    const aSec=(a.active&&isToday&&isActiveToday(a.active)&&a.active.startTs)?Math.max(0,Math.floor((Date.now()-a.active.startTs)/1000)):0;
-    const tSec=cSec+aSec,cnt=logs.reduce((s,e)=>s+(parseInt(e.count)||0),0);
+    const logs=a.logs.filter(l=>l.date===fd);
+    const cSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+    const aSec=a.active&&isToday&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const tSec=cSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
     const aht=cnt>0?hms(Math.round(cSec/cnt)):'—',ok=tSec>=SLA_SEC;
-    const zeroCount=allLogsForDay.filter(l=>(parseInt(l.totalTimeSec)||0)===0).length;
-    return{name:a.displayName,tSec,cSec,aSec,cnt,aht,ok,def:tSec-SLA_SEC,active:isToday&&isActiveToday(a.active)?a.active:null,logs,zeroCount};
+    return{name:a.displayName,tSec,cSec,aSec,cnt,aht,ok,def:tSec-SLA_SEC,active:isToday?a.active:null,logs};
   });
-  // Hide associates with zero total time and no active session
-  cards=cards.filter(c=>c.tSec>0||c.active);
-  if(!cards.length){grid.innerHTML='<div class="empty"><h3>No activity recorded for this date</h3></div>';return;}
   if(srt==='high')cards.sort((a,b)=>b.tSec-a.tSec);
   else if(srt==='low')cards.sort((a,b)=>a.tSec-b.tSec);
   else cards.sort((a,b)=>a.name.localeCompare(b.name));
@@ -506,7 +395,7 @@ function renderSummary(){
     return `<div class="pc ${c.ok?'top':'low'}" id="scard-${sn}">
       <div class="ph"><div>
         <div style="display:flex;align-items:center;gap:6px"><div class="pn">${c.name}</div>${c.active?'<span class="live-chip"><span class="blink">●</span> LIVE</span>':''}</div>
-        <div style="font-size:.6rem;color:var(--muted);margin-top:3px">${c.logs.length} activities${c.zeroCount>0?` <span style="color:var(--warn);font-size:.57rem">(${c.zeroCount} zero-time hidden)</span>`:''}</div>
+        <div style="font-size:.6rem;color:var(--muted);margin-top:3px">${c.logs.length} activities today</div>
       </div>
       <div class="pt ${c.ok?'tg':'tr'}" id="stot-${sn}">${hms(c.tSec)}</div></div>
       <div class="ps">
@@ -529,10 +418,10 @@ function getPerfScores(period){
     else if(period==='week'){const d=new Date(now);d.setDate(d.getDate()-7);logs=logs.filter(l=>l.date>=d.toISOString().slice(0,10));}
     else if(period==='month')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,7)));
     else if(period==='year')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,4)));
-    const doneSec=logs.reduce((s,e)=>s+(parseInt(e.totalTimeSec)||0),0);
-    const aSec=isToday&&a.active&&isActiveToday(a.active)?Math.floor((Date.now()-a.active.startTs)/1000):0;
-    const tSec=doneSec+aSec,cnt=logs.reduce((s,e)=>s+(parseInt(e.count)||0),0);
-    return{name:a.displayName,tSec,cnt,ok:tSec>=SLA_SEC,lc:logs.length,active:isToday&&isActiveToday(a.active)?a.active:null,aSec};
+    const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+    const aSec=isToday&&a.active&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const tSec=doneSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
+    return{name:a.displayName,tSec,cnt,ok:tSec>=SLA_SEC,lc:logs.length,active:isToday?a.active:null,aSec};
   }).filter(s=>s.lc>0||s.active);
 }
 function perfCard(s,rank,type){
@@ -550,7 +439,6 @@ function perfCard(s,rank,type){
     ${s.active?`<div class="live-act-bar"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--green)">▶</span><span style="font-size:.68rem;color:var(--green);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--green);white-space:nowrap" id="pelapsed-${sn}">${hms(s.aSec)}</span></div>`:''}
   </div>`;
 }
-
 function renderTop(){
   const period=document.getElementById('top-period')?.value||'today';
   const scores=getPerfScores(period).sort((a,b)=>b.tSec-a.tSec);
@@ -572,7 +460,7 @@ function startSummaryTick(){
   if(document.getElementById('s-date').value!==today())return;
   summaryTickIv=setInterval(()=>{
     Object.values(allData).forEach(a=>{
-      if(!a.active||!isActiveToday(a.active))return;
+      if(!a.active)return;
       const sn=a.displayName.replace(/[^a-z0-9]/gi,'_');
       const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
       const doneSec=a.logs.filter(l=>l.date===today()).reduce((s,e)=>s+(e.totalTimeSec||0),0);
@@ -590,7 +478,7 @@ function startPerfTick(type){
   if(period!=='today')return;
   perfTickIv=setInterval(()=>{
     Object.values(allData).forEach(a=>{
-      if(!a.active||!isActiveToday(a.active))return;
+      if(!a.active)return;
       const sn=a.displayName.replace(/[^a-z0-9]/gi,'_')+'_'+type;
       const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
       const doneSec=a.logs.filter(l=>l.date===today()).reduce((s,e)=>s+(e.totalTimeSec||0),0);
@@ -605,7 +493,7 @@ function genEOD(){
   const dt=document.getElementById('eod-date').value||today();
   const ents=Object.values(allData).map(a=>{
     const logs=a.logs.filter(l=>l.date===dt);
-    const tSec=logs.reduce((s,e)=>s+(parseInt(e.totalTimeSec)||0),0);const cnt=logs.reduce((s,e)=>s+(parseInt(e.count)||0),0);
+    const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);const cnt=logs.reduce((s,e)=>s+(e.count||0),0);
     return{name:a.displayName,tSec,cnt,ok:tSec>=SLA_SEC,logs};
   }).filter(e=>e.logs.length>0).sort((a,b)=>b.tSec-a.tSec);
   if(!ents.length){document.getElementById('eod-txt').value='No data for '+dt;return;}
@@ -626,45 +514,8 @@ function dlCSV(){
 }
 function dlSummaryCSV(){
   const fd=document.getElementById('s-date')?.value||today();let csv='Name,Date,Total Time,Transactions,Activities,AHT,SLA\n';
-  Object.values(allData).forEach(a=>{const logs=a.logs.filter(l=>l.date===fd&&(l.totalTimeSec||0)>0);const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);const cnt=logs.reduce((s,e)=>s+(e.count||0),0);csv+=`"${a.displayName}","${fd}",${hms(tSec)},${cnt},${logs.length},${cnt>0?hms(Math.round(tSec/cnt)):'—'},${tSec>=SLA_SEC?'Met':'Below'}\n`;});
+  Object.values(allData).forEach(a=>{const logs=a.logs.filter(l=>l.date===fd);const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);const cnt=logs.reduce((s,e)=>s+(e.count||0),0);csv+=`"${a.displayName}","${fd}",${hms(tSec)},${cnt},${logs.length},${cnt>0?hms(Math.round(tSec/cnt)):'—'},${tSec>=SLA_SEC?'Met':'Below'}\n`;});
   const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='hrops_summary_'+fd+'.csv';a.click();
-}
-async function removeZeroTimeLogs(){
-  const fd=document.getElementById('s-date')?.value||today();
-  const statusEl=document.getElementById('zero-rm-status');
-  const btn=document.getElementById('zero-rm-btn');
-  let toDelete=[];
-  Object.values(allData).forEach(a=>{
-    if(a.logs.some(l=>l.date===fd&&(parseInt(l.totalTimeSec)||0)===0)) toDelete.push(a.displayName);
-  });
-  if(!toDelete.length){
-    statusEl.style.display='block';
-    statusEl.innerHTML='<span style="color:var(--green)">✅ No zero-time logs found for '+fd+'</span>';
-    setTimeout(()=>{statusEl.style.display='none';},3000);return;
-  }
-  if(!confirm(`Remove zero-time log entries from ${fd} for ${toDelete.length} associate(s)?\n\nThis cannot be undone.`)) return;
-  btn.disabled=true;btn.textContent='⏳ Removing...';
-  statusEl.style.display='block';statusEl.innerHTML='<span style="color:var(--muted)">Scanning Firebase...</span>';
-  let deleted=0;
-  try{
-    const snap=await db.ref(TEAM+'/associates').once('value');
-    const associates=snap.val()||{};
-    for(const [assocKey,assocData] of Object.entries(associates)){
-      const logs=assocData.logs||{};
-      for(const [logKey,log] of Object.entries(logs)){
-        if(log.date===fd&&(parseInt(log.totalTimeSec)||0)===0){
-          await db.ref(TEAM+'/associates/'+assocKey+'/logs/'+logKey).remove();
-          deleted++;
-        }
-      }
-    }
-    statusEl.innerHTML=`<span style="color:var(--green)">✅ Done — removed ${deleted} zero-time entries from ${fd}</span>`;
-    setTimeout(()=>{statusEl.style.display='none';},4000);
-  }catch(e){
-    statusEl.innerHTML=`<span style="color:var(--red)">❌ Error after ${deleted} deletions: ${e.message}</span>`;
-  }finally{
-    btn.disabled=false;btn.textContent='🗑 Remove Zero-Time Logs';
-  }
 }
 function sw(tab){
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -676,235 +527,7 @@ function sw(tab){
   if(tab==='top')renderTop();
   if(tab==='low')renderLow();
   if(tab==='summary')renderSummary();
-  if(tab==='analytics')renderAnalytics();
-  if(tab==='fte')renderFTE();
 }
-
-// ── Analytics & FTE Helpers ──────────────────────────────
-function getWorkingDays(year, month) {
-  let count = 0;
-  let date = new Date(year, month, 1);
-  while (date.getMonth() === month) {
-    let day = date.getDay();
-    if (day !== 0 && day !== 6) count++;
-    date.setDate(date.getDate() + 1);
-  }
-  return count;
-}
-
-function renderAnalytics() {
-  const period = document.getElementById('ana-period').value;
-  const year = parseInt(document.getElementById('ana-year').value);
-  const data = Object.values(allData);
-  
-  let labels = [], values = [], activityMap = {};
-  let totalSec = 0, workingDays = 0;
-
-  if (period === 'daily') {
-    const todayObj = new Date();
-    for (let i = 29; i >= 0; i--) {
-      const d = new Date(todayObj);
-      d.setDate(d.getDate() - i);
-      const ds = d.toLocaleDateString('en-CA');
-      labels.push(ds);
-      let daySec = 0;
-      data.forEach(a => {
-        a.logs.filter(l => l.date === ds).forEach(l => {
-          daySec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(daySec / 3600);
-      totalSec += daySec;
-      if (d.getDay() !== 0 && d.getDay() !== 6) workingDays++;
-    }
-  } else if (period === 'monthly') {
-    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-    months.forEach((m, i) => {
-      labels.push(m);
-      let monSec = 0;
-      data.forEach(a => {
-        a.logs.filter(l => l.date && l.date.startsWith(`${year}-${pad(i + 1)}`)).forEach(l => {
-          monSec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(monSec / 3600);
-      totalSec += monSec;
-      workingDays += getWorkingDays(year, i);
-    });
-  } else if (period === 'annually') {
-    for (let y = year - 4; y <= year; y++) {
-      labels.push(y);
-      let yrSec = 0;
-      data.forEach(a => {
-        a.logs.filter(l => l.date && l.date.startsWith(`${y}`)).forEach(l => {
-          yrSec += (l.totalTimeSec || 0);
-          activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-        });
-      });
-      values.push(yrSec / 3600);
-      if (y === year) {
-        totalSec = yrSec;
-        for (let m = 0; m < 12; m++) workingDays += getWorkingDays(y, m);
-      }
-    }
-  } else if (period === 'quarterly') {
-    const quarters = ["Q1", "Q2", "Q3", "Q4"];
-    quarters.forEach((q, i) => {
-      labels.push(q);
-      let qSec = 0;
-      const startMon = i * 3 + 1;
-      const endMon = (i + 1) * 3;
-      data.forEach(a => {
-        a.logs.forEach(l => {
-          if (!l.date || !l.date.startsWith(`${year}`)) return;
-          const m = parseInt(l.date.split('-')[1]);
-          if (m >= startMon && m <= endMon) {
-            qSec += (l.totalTimeSec || 0);
-            activityMap[l.activity] = (activityMap[l.activity] || 0) + (l.totalTimeSec || 0);
-          }
-        });
-      });
-      values.push(qSec / 3600);
-      totalSec += qSec;
-      for (let m = startMon - 1; m < endMon; m++) workingDays += getWorkingDays(year, m);
-    });
-  }
-
-  const reqHours = workingDays * 8;
-  const prodPct = reqHours > 0 ? (totalSec / 3600 / reqHours * 100).toFixed(1) : 0;
-
-  if (anaChart) anaChart.destroy();
-  anaChart = new Chart(document.getElementById('ana-chart'), {
-    type: 'bar',
-    data: {
-      labels: labels,
-      datasets: [{
-        label: 'Production Hours',
-        data: values,
-        backgroundColor: 'rgba(0, 229, 160, 0.2)',
-        borderColor: 'rgba(0, 229, 160, 1)',
-        borderWidth: 2,
-        tension: 0.3,
-        fill: true
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      scales: {
-        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#5b6478' } },
-        x: { grid: { display: false }, ticks: { color: '#5b6478' } }
-      },
-      plugins: { legend: { display: false } }
-    }
-  });
-
-  const pieLabels = Object.keys(activityMap);
-  const pieValues = Object.values(activityMap).map(s => s / 3600);
-  if (anaPie) anaPie.destroy();
-  anaPie = new Chart(document.getElementById('ana-pie'), {
-    type: 'doughnut',
-    data: {
-      labels: pieLabels,
-      datasets: [{
-        data: pieValues,
-        backgroundColor: ['#00e5a0', '#0088ff', '#ffaa00', '#a855f7', '#ff4466', '#6366f1', '#ec4899', '#f59e0b'],
-        borderWidth: 0
-      }]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: { legend: { position: 'right', labels: { color: '#e8eaf0', font: { size: 10 } } } }
-    }
-  });
-
-  const summaryEl = document.getElementById('ana-summary');
-  summaryEl.innerHTML = `
-    <div style="display:grid;grid-template-columns:1fr;gap:10px;">
-      <div class="ms"><div class="ml">Production %</div><div class="mv ${prodPct >= 100 ? 'tg' : 'tr'}">${prodPct}%</div></div>
-      <div class="ms"><div class="ml">Total Hours</div><div class="mv">${(totalSec / 3600).toFixed(1)}h</div></div>
-      <div class="ms"><div class="ml">Req. Hours</div><div class="mv">${reqHours}h</div></div>
-      <div class="ms"><div class="ml">Work Days</div><div class="mv">${workingDays}</div></div>
-    </div>
-  `;
-}
-
-function renderFTE() {
-  const period = document.getElementById('fte-period').value;
-  const dateStr = document.getElementById('fte-date').value || today();
-  const data = Object.values(allData);
-  const d = new Date(dateStr);
-  const year = d.getFullYear();
-  const month = d.getMonth();
-
-  let workingDays = 0, logs = [];
-
-  if (period === 'daily') {
-    workingDays = 1;
-    data.forEach(a => logs.push(...a.logs.filter(l => l.date === dateStr)));
-  } else if (period === 'monthly') {
-    workingDays = getWorkingDays(year, month);
-    data.forEach(a => logs.push(...a.logs.filter(l => l.date && l.date.startsWith(`${year}-${pad(month + 1)}`))));
-  } else if (period === 'annually') {
-    for (let m = 0; m < 12; m++) workingDays += getWorkingDays(year, m);
-    data.forEach(a => logs.push(...a.logs.filter(l => l.date && l.date.startsWith(`${year}`))));
-  }
-
-  const actMap = {};
-  let grandTotalSec = 0, grandTrans = 0;
-
-  logs.forEach(l => {
-    if (!actMap[l.activity]) actMap[l.activity] = { sec: 0, count: 0, trans: 0 };
-    actMap[l.activity].sec += (l.totalTimeSec || 0);
-    actMap[l.activity].count += 1;
-    actMap[l.activity].trans += (l.count || 0);
-    grandTotalSec += (l.totalTimeSec || 0);
-    grandTrans += (l.count || 0);
-  });
-
-  const fteBase = workingDays * 8 * 3600;
-  const tbody = document.getElementById('fte-body');
-  const rows = Object.keys(actMap).map(name => {
-    const a = actMap[name];
-    const hours = a.sec / 3600;
-    const fte = fteBase > 0 ? (a.sec / fteBase) : 0;
-    const pct = grandTotalSec > 0 ? (a.sec / grandTotalSec * 100) : 0;
-    const avg = a.trans > 0 ? (a.sec / a.trans) : 0;
-    return { name, avg, count: a.count, hours, trans: a.trans, fte, pct };
-  }).sort((a, b) => b.hours - a.hours);
-
-  tbody.innerHTML = rows.map(r => `
-    <tr>
-      <td style="font-weight:500">${r.name}</td>
-      <td>${hms(Math.round(r.avg))}</td>
-      <td>${r.count}</td>
-      <td>${r.hours.toFixed(1)}h</td>
-      <td>${r.trans}</td>
-      <td><span class="rbadge2" style="background:rgba(168,85,247,0.1);border-color:rgba(168,85,247,0.3);color:var(--purple)">${r.fte.toFixed(3)}</span></td>
-      <td>
-        <div style="display:flex;align-items:center;gap:8px">
-          <div style="flex:1;height:4px;background:var(--surface);border-radius:2px;overflow:hidden;">
-            <div style="width:${r.pct}%;height:100%;background:var(--accent)"></div>
-          </div>
-          <span style="font-size:.65rem;color:var(--muted);width:30px">${Math.round(r.pct)}%</span>
-        </div>
-      </td>
-    </tr>
-  `).join('');
-
-  const totalFTE = fteBase > 0 ? (grandTotalSec / fteBase) : 0;
-  document.getElementById('fte-total-row').innerHTML = `
-    <td colspan="3">TOTAL</td>
-    <td>${(grandTotalSec / 3600).toFixed(1)}h</td>
-    <td>${grandTrans}</td>
-    <td style="color:var(--accent);font-weight:800">${totalFTE.toFixed(2)}</td>
-    <td>100%</td>
-  `;
-}
-
 </script>
 </body>
 </html>
