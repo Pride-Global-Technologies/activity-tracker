@@ -1,0 +1,1306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Manager Dashboard – Activity Tracker</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@600;700;800&display=swap" rel="stylesheet"/>
+<script src="local-firebase.js"></script>
+<script src="shared-access.js"></script>
+<style>
+:root{--bg:#06080d;--surface:#0d1117;--card:#111620;--border:#1e2533;--accent:#00e5a0;--a2:#0088ff;--red:#ff4466;--warn:#ffaa00;--purple:#a855f7;--text:#e8eaf0;--muted:#5b6478;}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'DM Mono',monospace;min-height:100vh;
+  background-image:radial-gradient(ellipse at 0% 0%,rgba(0,229,160,.05) 0%,transparent 40%),radial-gradient(ellipse at 100% 100%,rgba(168,85,247,.05) 0%,transparent 40%);}
+header{border-bottom:1px solid var(--border);padding:12px 24px;display:flex;align-items:center;justify-content:space-between;background:rgba(13,17,23,.95);backdrop-filter:blur(12px);position:sticky;top:0;z-index:200;}
+.logo{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:800;color:var(--accent);}
+.logo span{color:var(--text);}
+.hdr-r{display:flex;align-items:center;gap:10px;}
+.clock{font-size:.7rem;color:var(--muted);background:var(--surface);border:1px solid var(--border);padding:4px 10px;border-radius:6px;}
+.live-ind{display:flex;align-items:center;gap:5px;font-size:.7rem;color:var(--accent);}
+.ldot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:lp 1.5s ease-in-out infinite;}
+@keyframes lp{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+.rbadge{padding:4px 11px;border-radius:20px;font-size:.68rem;letter-spacing:1px;}
+.rbadge.mgr{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);color:var(--purple);}
+.rbadge.hrops-lead{background:rgba(0,136,255,.15);border:1px solid rgba(0,136,255,.4);color:var(--a2);}
+.rbadge.ob-lead{background:rgba(168,85,247,.15);border:1px solid rgba(168,85,247,.4);color:var(--purple);}
+.wrap{max-width:1500px;margin:0 auto;padding:20px 18px;}
+.tstats{display:grid;grid-template-columns:repeat(6,1fr);gap:10px;margin-bottom:18px;}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:14px;position:relative;overflow:hidden;}
+.sc::after{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.sc.g::after{background:var(--accent);}.sc.b::after{background:var(--a2);}.sc.r::after{background:var(--red);}.sc.w::after{background:var(--warn);}.sc.p::after{background:var(--purple);}
+.sl{font-size:.57rem;letter-spacing:1.2px;color:var(--muted);text-transform:uppercase;margin-bottom:5px;}
+.sv{font-family:'Syne',sans-serif;font-size:1.55rem;font-weight:800;}
+.sv.g{color:var(--accent);}.sv.b{color:var(--a2);}.sv.r{color:var(--red);}.sv.w{color:var(--warn);}.sv.p{color:var(--purple);}
+.tabs{display:flex;gap:2px;margin-bottom:16px;border-bottom:1px solid var(--border);overflow-x:auto;}
+.tab{padding:8px 17px;font-size:.71rem;cursor:pointer;border-bottom:2px solid transparent;color:var(--muted);transition:all .2s;white-space:nowrap;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab:hover{color:var(--text);}
+.panel{display:none;}.panel.active{display:block;}
+.twrap{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.tbar{padding:12px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;}
+.tbar-l{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+select,input[type=text],input[type=date],input[type=number]{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:7px 11px;border-radius:7px;font-family:'DM Mono',monospace;font-size:.72rem;outline:none;transition:border .2s;}
+select:focus,input:focus{border-color:var(--accent);}
+select option{background:var(--surface);}
+input[type=date]::-webkit-calendar-picker-indicator{filter:invert(.5);cursor:pointer;}
+.bsm{background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 12px;border-radius:7px;cursor:pointer;font-family:'DM Mono',monospace;font-size:.71rem;transition:all .2s;white-space:nowrap;}
+.bsm:hover{border-color:var(--accent);color:var(--accent);}
+.bsm.green{border-color:var(--accent);color:var(--accent);}
+.bsm.green:hover{background:rgba(0,229,160,.08);}
+.bsm.red{border-color:var(--red);color:var(--red);}
+.bsm.ap{border-color:var(--accent);color:var(--accent);background:rgba(0,229,160,.07);}
+.tscroll{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;font-size:.7rem;min-width:900px;}
+thead th{padding:9px 12px;text-align:left;font-size:.57rem;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);border-bottom:1px solid var(--border);background:var(--surface);cursor:pointer;white-space:nowrap;}
+thead th:hover{color:var(--text);}
+tbody tr{border-bottom:1px solid rgba(30,37,51,.7);}
+tbody tr:hover{background:rgba(255,255,255,.02);}
+tbody td{padding:8px 12px;white-space:nowrap;}
+tfoot td{padding:9px 12px;border-top:1px solid var(--border);font-family:'Syne',sans-serif;font-weight:600;}
+.sg{color:var(--accent);font-weight:500;}.sr{color:var(--red);font-weight:500;}.sw{color:var(--warn);font-weight:500;}
+.tg{color:var(--accent);}.tr{color:var(--red);}
+.rbadge2{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,160,.1);border:1px solid rgba(0,229,160,.3);color:var(--accent);padding:1px 7px;border-radius:3px;font-size:.59rem;}
+.blink{animation:bl 1s step-end infinite;}
+@keyframes bl{0%,100%{opacity:1}50%{opacity:0}}
+.empty{text-align:center;padding:45px;color:var(--muted);}
+.empty h3{font-family:'Syne',sans-serif;font-size:.95rem;margin-bottom:5px;color:var(--text);}
+.stitle{font-size:.63rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted);}
+.pill{display:inline-flex;align-items:center;gap:7px;background:rgba(0,229,160,.08);border:1px solid rgba(0,229,160,.3);border-radius:7px;padding:6px 12px;font-size:.71rem;color:var(--accent);max-width:340px;overflow:hidden;flex-shrink:0;}
+.pill.idle{background:rgba(91,100,120,.08);border-color:var(--border);color:var(--muted);}
+.pdot{width:7px;height:7px;border-radius:50%;background:var(--accent);flex-shrink:0;animation:lp 1.5s ease-in-out infinite;}
+.pdot.idle{background:var(--muted);animation:none;}
+.pname{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:500;}
+.ptimer{font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;white-space:nowrap;}
+
+.pgrid{
+  display:grid !important;
+  grid-template-columns:repeat(4,1fr) !important;
+  gap:12px !important;
+}
+.pgrid > .pc{
+  width:100% !important;
+  min-width:0 !important;
+}
+
+.pc{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:16px;}
+.pc.top{border-left:3px solid var(--accent);}.pc.low{border-left:3px solid var(--red);}
+.ph{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:11px;}
+.pn{font-family:'Syne',sans-serif;font-size:.92rem;font-weight:700;}
+.pt{font-family:'Syne',sans-serif;font-size:1.25rem;font-weight:700;}
+.ps{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:9px;}
+.ms{background:var(--surface);border-radius:6px;padding:6px 8px;}
+.ml{font-size:.57rem;color:var(--muted);letter-spacing:1px;text-transform:uppercase;}
+.mv{font-size:.78rem;font-weight:500;margin-top:1px;}
+.rn{font-family:'Syne',sans-serif;font-size:1.35rem;font-weight:800;color:var(--muted);}
+.top .rn{color:var(--accent);}.low .rn{color:var(--red);}
+.mgrid{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+.mc{background:var(--card);border:1px solid var(--border);border-radius:11px;overflow:hidden;}
+.mh{padding:13px 16px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;}
+.mb{padding:13px 16px;}
+.mrow{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid rgba(30,37,51,.5);}
+.mrow:last-child{border-bottom:none;}
+.mi{display:flex;align-items:center;gap:8px;}
+.av{width:27px;height:27px;border-radius:50%;background:rgba(0,229,160,.12);border:1px solid rgba(0,229,160,.3);display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-weight:700;font-size:.6rem;color:var(--accent);flex-shrink:0;}
+.rmbtn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:3px 8px;border-radius:4px;cursor:pointer;font-size:.65rem;font-family:'DM Mono',monospace;transition:all .2s;}
+.rmbtn:hover{border-color:var(--red);color:var(--red);}
+.addrow{display:flex;gap:7px;margin-top:11px;}
+.addrow input{flex:1;}
+.arow{display:grid;grid-template-columns:2.5fr 1fr 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(30,37,51,.5);font-size:.71rem;}
+.arow:last-child{border-bottom:none;}
+.aaform{display:grid;grid-template-columns:2.5fr 1fr 1fr auto;gap:8px;align-items:end;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.aaform label{font-size:.59rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:3px;}
+.vrow{padding:9px 0;border-bottom:1px solid rgba(30,37,51,.5);font-size:.71rem;}
+.vrow:last-child{border-bottom:none;}
+.vwho{color:var(--accent);font-weight:500;}.vwhat{color:var(--text);margin-top:2px;}.vwhen{color:var(--muted);font-size:.61rem;margin-top:2px;}
+.ecard{background:var(--card);border:1px solid var(--border);border-radius:11px;padding:19px;margin-bottom:15px;}
+.ecard h3{font-family:'Syne',sans-serif;font-size:.95rem;font-weight:700;margin-bottom:11px;color:var(--accent);}
+textarea{width:100%;background:var(--surface);border:1px solid var(--border);border-radius:7px;color:var(--text);padding:10px 13px;font-family:'DM Mono',monospace;font-size:.72rem;resize:vertical;outline:none;min-height:200px;}
+textarea:focus{border-color:var(--accent);}
+.drange{display:flex;align-items:center;gap:7px;flex-wrap:wrap;}
+.drange span{color:var(--muted);font-size:.69rem;}
+.live-chip{display:inline-flex;align-items:center;gap:4px;background:rgba(0,229,160,.15);border:1px solid rgba(0,229,160,.4);color:var(--accent);padding:2px 7px;border-radius:4px;font-size:.58rem;font-weight:600;letter-spacing:.5px;white-space:nowrap;flex-shrink:0;}
+.live-act-bar{display:flex;align-items:center;justify-content:space-between;gap:8px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:6px;padding:7px 10px;margin-top:9px;}
+.wbox{background:rgba(255,170,0,.08);border:1px solid rgba(255,170,0,.25);border-radius:7px;padding:9px 13px;font-size:.69rem;color:var(--warn);margin-bottom:11px;}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:9999;align-items:center;justify-content:center;}
+.modal-bg.open{display:flex;}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:26px;width:100%;max-width:500px;box-shadow:0 24px 60px rgba(0,0,0,.5);}
+.modal h3{font-family:'Syne',sans-serif;font-size:1.05rem;font-weight:700;margin-bottom:3px;}
+.modal-sub{color:var(--accent);font-weight:500;font-size:.8rem;margin-bottom:16px;}
+.modal-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;}
+.modal-grid label{font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase;display:block;margin-bottom:3px;}
+.modal-grid input,.modal-grid select{width:100%;}
+.modal-btns{display:flex;gap:8px;justify-content:flex-end;}
+/* Team switcher buttons */
+.team-btn{padding:9px 22px;border-radius:9px;font-family:'Syne',sans-serif;font-weight:700;font-size:.78rem;cursor:pointer;border:2px solid var(--border);background:var(--card);color:var(--muted);transition:all .2s;letter-spacing:.3px;}
+.team-btn:hover{color:var(--text);border-color:var(--text);}
+.team-btn.active{background:rgba(0,229,160,.1);border-color:var(--accent);color:var(--accent);}
+.team-btn.hrops.active{background:rgba(0,136,255,.1);border-color:var(--a2);color:var(--a2);}
+.team-btn.ob.active{background:rgba(168,85,247,.1);border-color:var(--purple);color:var(--purple);}
+.cleanup-card{background:var(--card);border:1px solid rgba(255,170,0,.3);border-radius:11px;padding:18px 20px;margin-bottom:16px;}
+.cleanup-header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;}
+.cleanup-stats{display:flex;gap:10px;flex-wrap:wrap;}
+.cs-box{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:9px 14px;min-width:110px;}
+.cs-label{font-size:.57rem;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.cs-val{font-family:'Syne',sans-serif;font-size:1.15rem;font-weight:700;}
+.cs-val.warn{color:var(--warn);}.cs-val.red{color:var(--red);}.cs-val.ok{color:var(--accent);}
+/* Team tags */
+.team-tag{display:inline-block;font-size:.58rem;padding:1px 6px;border-radius:3px;font-weight:600;letter-spacing:.5px;}
+.hrops-tag{background:rgba(0,136,255,.12);color:var(--a2);}
+.ob-tag{background:rgba(168,85,247,.12);color:var(--purple);}
+/* Team section headers in manage */
+.team-section-hdr{font-family:'Syne',sans-serif;font-size:.78rem;font-weight:700;padding:10px 0 7px;margin-top:14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:7px;}
+.team-section-hdr.hrops{color:var(--a2);}.team-section-hdr.ob{color:var(--purple);}
+
+@media (max-width:900px){
+  .pgrid{grid-template-columns:repeat(2,1fr) !important;}
+}
+@media (max-width:600px){
+  .pgrid{grid-template-columns:1fr !important;}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">Activity<span>Tracker</span> <span style="color:var(--muted);font-size:.7rem;font-family:'DM Mono',monospace"> / MANAGER</span></div>
+  <div class="hdr-r">
+    <div class="clock" id="clock">--:--:-- EST</div>
+    <div class="live-ind"><div class="ldot"></div>LIVE</div>
+    <button class="bsm" onclick="atLogout()">Logout</button>
+    <div class="rbadge mgr">MANAGER</div>
+  </div>
+</header>
+<div class="wrap">
+  <!-- TOP STATS -->
+  <div class="tstats">
+    <div class="sc g"><div class="sl">Active Now</div><div class="sv g" id="st-active">0</div></div>
+    <div class="sc b"><div class="sl">Today's Activities</div><div class="sv b" id="st-acts">0</div></div>
+    <div class="sc w"><div class="sl">Team AHT</div><div class="sv w" id="st-aht">—</div></div>
+    <div class="sc g"><div class="sl">SLA Met</div><div class="sv g" id="st-met">0</div></div>
+    <div class="sc r"><div class="sl">Below SLA</div><div class="sv r" id="st-below">0</div></div>
+    <div class="sc p"><div class="sl">Team Total</div><div class="sv p" id="st-tot">0:00</div></div>
+  </div>
+  <!-- TEAM SWITCHER -->
+  <div style="display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;">
+    <button class="team-btn active" id="tbtn-both"       onclick="switchTeamBtn('both')">👥 Both Teams</button>
+    <button class="team-btn hrops"  id="tbtn-hrops"      onclick="switchTeamBtn('hrops')">🔵 HR Operations</button>
+    <button class="team-btn ob"     id="tbtn-onboarding" onclick="switchTeamBtn('onboarding')">🟣 Onboarding Specialists</button>
+  </div>
+  <!-- TABS -->
+  <div class="tabs">
+    <div class="tab active" id="tab-detail"  onclick="sw('detail')">📋 Detailed Log</div>
+    <div class="tab"        id="tab-summary" onclick="sw('summary')">👥 Summary</div>
+    <div class="tab"        id="tab-top"     onclick="sw('top')">🏆 Top Performers</div>
+    <div class="tab"        id="tab-low"     onclick="sw('low')">⚠️ Needs Attention</div>
+    <div class="tab"        id="tab-eod"     onclick="sw('eod')">📧 EOD Report</div>
+    <div class="tab" id="tab-team"       onclick="sw('team')">⚙️ Manage Team</div>
+    <div class="tab" id="tab-activities" onclick="sw('activities')">🔧 Manage Activities</div>
+    <div class="tab" id="tab-history"    onclick="sw('history')">🕓 Version History</div>
+  </div>
+
+  <!-- DETAILED LOG -->
+  <div id="panel-detail" class="panel active">
+    <div class="twrap">
+      <div class="tbar">
+        <div class="tbar-l">
+          <input type="text" id="s-name" placeholder="Search name..." oninput="renderDetail()" style="width:145px"/>
+          <select id="f-cat" onchange="renderDetail()"><option value="all">All Categories</option></select>
+          <select id="f-sla" onchange="renderDetail()"><option value="all">All SLA</option><option value="met">SLA Met</option><option value="below">Below SLA</option></select>
+          <select id="f-stat" onchange="renderDetail()"><option value="all">All Status</option><option value="running">Running</option><option value="done">Completed</option></select>
+          <div class="drange">
+            <button class="bsm ap" id="dp-today" onclick="setDP('today')">Today</button>
+            <button class="bsm" id="dp-week" onclick="setDP('week')">Week</button>
+            <button class="bsm" id="dp-month" onclick="setDP('month')">Month</button>
+            <button class="bsm" id="dp-all" onclick="setDP('all')">All</button>
+            <span>Custom:</span>
+            <input type="date" id="d-from" onchange="clearPresets();renderDetail()"/>
+            <span>→</span>
+            <input type="date" id="d-to" onchange="clearPresets();renderDetail()"/>
+          </div>
+        </div>
+        <div style="display:flex;align-items:center;gap:7px;flex-wrap:wrap;">
+          <div class="pill idle" id="mgr-pill"><span class="pdot idle" id="mgr-dot"></span><span class="pname" id="mgr-pname">No one active</span><span class="ptimer" id="mgr-pcount"></span></div>
+          <button class="bsm" onclick="sortBy('name')">↕ Name</button>
+          <button class="bsm" onclick="sortBy('time')">↕ Time</button>
+          <button class="bsm green" onclick="dlCSV()">⬇ CSV</button>
+        </div>
+      </div>
+      <div class="tscroll">
+        <table>
+          <thead><tr><th onclick="sortBy('name')">Name</th><th>Team</th><th>Activity</th><th>Category</th><th>Date</th><th>Start (EST)</th><th>End (EST)</th><th>Count</th><th onclick="sortBy('time')">Time Taken</th><th>AHT</th><th>Comments</th><th>SLA</th></tr></thead>
+          <tbody id="detail-body"><tr><td colspan="12"><div class="empty"><h3>Connecting...</h3></div></td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div id="panel-summary" class="panel">
+    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
+      <div class="tbar-l">
+        <select id="s-sort" onchange="renderSummary()"><option value="name">Sort: Name A–Z</option><option value="high">Highest Hours</option><option value="low">Lowest Hours</option></select>
+        <div class="drange"><span>Date:</span><input type="date" id="s-date" onchange="renderSummary()"/><button class="bsm" onclick="document.getElementById('s-date').value=today();renderSummary()">Today</button></div>
+      </div>
+      <button class="bsm green" onclick="dlSummaryCSV()">⬇ Download Summary</button>
+    </div>
+    <div class="pgrid" id="sum-grid"></div>
+  </div>
+
+  <!-- TOP PERFORMERS -->
+  <div id="panel-top" class="panel">
+    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
+      <div class="tbar-l">
+        <select id="top-period" onchange="renderTop()"><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option><option value="year">This Year</option></select>
+      </div>
+    </div>
+    <div style="margin-bottom:8px"><div class="stitle" style="padding:0 2px">🏆 Top Performers</div></div>
+    <div class="pgrid" id="top-grid"></div>
+  </div>
+
+  <!-- NEEDS ATTENTION -->
+  <div id="panel-low" class="panel">
+    <div class="tbar" style="margin-bottom:13px;background:var(--card);border:1px solid var(--border);border-radius:11px;">
+      <div class="tbar-l">
+        <select id="low-period" onchange="renderLow()"><option value="today">Today</option><option value="week">This Week</option><option value="month">This Month</option><option value="year">This Year</option></select>
+      </div>
+    </div>
+    <div style="margin-bottom:8px"><div class="stitle" style="padding:0 2px">⚠️ Needs Attention</div></div>
+    <div class="pgrid" id="low-grid"></div>
+  </div>
+
+  <!-- EOD REPORT -->
+  <div id="panel-eod" class="panel">
+    <div class="ecard">
+      <h3>📧 End of Day Report</h3>
+      <p style="color:var(--muted);font-size:.73rem;margin-bottom:13px">Auto-generated from today's data.</p>
+      <div style="display:flex;gap:8px;margin-bottom:11px;flex-wrap:wrap;">
+        <input type="date" id="eod-date"/>
+        <button class="bsm green" onclick="genEOD()">Generate Report</button>
+        <button class="bsm" onclick="copyEOD()">📋 Copy</button>
+      </div>
+      <textarea id="eod-txt" placeholder="Click 'Generate Report'..."></textarea>
+    </div>
+  </div>
+
+  
+  <!-- MANAGE TEAM -->
+  <div id="panel-team" class="panel">
+    <div class="wbox">⚠ Firebase Console → Realtime Database → Rules → set .read and .write to <code>true</code> if Add fails.</div>
+
+    <!-- MIGRATE OLD DATA — prominent card -->
+    <div style="background:rgba(0,136,255,.08);border:2px solid rgba(0,136,255,.4);border-radius:11px;padding:18px 20px;margin-bottom:16px;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:14px;flex-wrap:wrap;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--a2);margin-bottom:5px">📦 Migrate Old Data to New Structure</div>
+          <div style="font-size:.72rem;color:var(--muted);max-width:560px;line-height:1.6">Old associate logs are saved under <code style="color:var(--a2);background:rgba(0,136,255,.1);padding:1px 5px;border-radius:3px">associates/</code> path. Click this button to move all old data into <code style="color:var(--a2);background:rgba(0,136,255,.1);padding:1px 5px;border-radius:3px">hrops/associates/</code> and <code style="color:var(--purple);background:rgba(168,85,247,.1);padding:1px 5px;border-radius:3px">onboarding/associates/</code> so it appears in all dashboards.</div>
+        </div>
+        <button id="migrate-btn" onclick="migrateOldData()" style="background:var(--a2);color:#000;border:none;padding:11px 22px;border-radius:8px;font-family:'Syne',sans-serif;font-weight:700;font-size:.82rem;cursor:pointer;white-space:nowrap;flex-shrink:0;transition:all .2s;">📦 Migrate Old Data</button>
+      </div>
+      <div id="migrate-status" style="display:none;margin-top:12px;font-size:.72rem;background:var(--surface);border:1px solid var(--border);border-radius:7px;padding:10px 14px;"></div>
+    </div>
+    <div class="mgrid">
+      <div class="mc">
+        <div class="mh"><span class="stitle">HR Ops Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-hrops">0 members</span></div>
+        <div class="mb"><div id="m-list-hrops"></div>
+          <div class="addrow"><input type="text" id="new-m-hrops" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('hrops')"/><button class="bsm green" onclick="addMember('hrops')">+ Add</button></div>
+        </div>
+      </div>
+      <div class="mc">
+        <div class="mh"><span class="stitle">Onboarding Team</span><span style="font-size:.69rem;color:var(--muted)" id="m-count-onboarding">0 members</span></div>
+        <div class="mb"><div id="m-list-onboarding"></div>
+          <div class="addrow"><input type="text" id="new-m-onboarding" placeholder="Full name" onkeydown="if(event.key==='Enter')addMember('onboarding')"/><button class="bsm green" onclick="addMember('onboarding')">+ Add</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="mgrid" style="margin-top:16px">
+      <div class="mc">
+        <div class="mh"><span class="stitle">HR Ops SLA & Settings</span></div>
+        <div class="mb">
+          <div style="margin-bottom:14px">
+            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Daily SLA Target (hours)</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="number" id="sla-h-hrops" value="8" min="1" max="24" style="width:75px"/>
+              <button class="bsm green" onclick="saveSLA('hrops')">Save</button>
+            </div>
+            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-hrops" style="color:var(--accent)">8 hours</span></p>
+            <div style="margin-top:12px"><label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lead Approval Enforcement</label><button class="bsm green" id="approval-toggle-hrops" onclick="saveApprovalToggle('hrops')">Loading...</button><p style="color:var(--muted);font-size:.67rem;margin-top:5px" id="approval-cur-hrops">Buffer: 5 minutes</p></div>
+          </div>
+          <div>
+            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="priv-mode-hrops"><option value="open">Open</option><option value="restricted">Restricted</option></select>
+              <button class="bsm green" onclick="savePriv('hrops')">Save</button>
+            </div>
+            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="priv-cur-hrops" style="color:var(--accent)">Open</span></p>
+          </div>
+        </div>
+      </div>
+      <div class="mc">
+        <div class="mh"><span class="stitle">Onboarding SLA & Settings</span></div>
+        <div class="mb">
+          <div style="margin-bottom:14px">
+            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Daily SLA Target (hours)</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <input type="number" id="sla-h-onboarding" value="8" min="1" max="24" style="width:75px"/>
+              <button class="bsm green" onclick="saveSLA('onboarding')">Save</button>
+            </div>
+            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="sla-cur-onboarding" style="color:var(--accent)">8 hours</span></p>
+            <div style="margin-top:12px"><label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Lead Approval Enforcement</label><button class="bsm green" id="approval-toggle-onboarding" onclick="saveApprovalToggle('onboarding')">Loading...</button><p style="color:var(--muted);font-size:.67rem;margin-top:5px" id="approval-cur-onboarding">Buffer: 5 minutes</p></div>
+          </div>
+          <div>
+            <label style="font-size:.6rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:5px">Privacy</label>
+            <div style="display:flex;gap:8px;align-items:center">
+              <select id="priv-mode-onboarding"><option value="open">Open</option><option value="restricted">Restricted</option></select>
+              <button class="bsm green" onclick="savePriv('onboarding')">Save</button>
+            </div>
+            <p style="color:var(--muted);font-size:.67rem;margin-top:5px">Current: <span id="priv-cur-onboarding" style="color:var(--accent)">Open</span></p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MANAGE ACTIVITIES -->
+  <div id="panel-activities" class="panel">
+    <div class="twrap" style="margin-bottom:16px">
+      <div class="mh"><span class="stitle" style="color:var(--a2)">🔵 HR Ops Activities</span><span style="font-size:.69rem;color:var(--muted)" id="act-cnt-hrops">0 activities</span></div>
+      <div style="padding:13px 16px;max-height:420px;overflow-y:auto">
+        <div class="arow" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Activity Name</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">AHT</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Category</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Actions</span>
+        </div>
+        <div id="act-list-hrops"></div>
+        <div class="aaform">
+          <div><label>Activity Name</label><input type="text" id="na-name-hrops" placeholder="New activity name"/></div>
+          <div><label>AHT (HH:MM:SS)</label><input type="text" id="na-aht-hrops" placeholder="00:05:00"/></div>
+          <div><label>Category</label><input type="text" id="na-cat-hrops" placeholder="Compliance"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="bsm green" onclick="addAct('hrops')">+ Add</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="twrap">
+      <div class="mh"><span class="stitle" style="color:var(--purple)">🟣 Onboarding Activities</span><span style="font-size:.69rem;color:var(--muted)" id="act-cnt-onboarding">0 activities</span></div>
+      <div style="padding:13px 16px;max-height:420px;overflow-y:auto">
+        <div class="arow" style="border-bottom:2px solid var(--border);padding-bottom:6px;margin-bottom:2px">
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Activity Name</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">AHT</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Category</span>
+          <span style="font-size:.6rem;letter-spacing:1px;color:var(--muted);text-transform:uppercase">Actions</span>
+        </div>
+        <div id="act-list-onboarding"></div>
+        <div class="aaform">
+          <div><label>Activity Name</label><input type="text" id="na-name-onboarding" placeholder="New activity name"/></div>
+          <div><label>AHT (HH:MM:SS)</label><input type="text" id="na-aht-onboarding" placeholder="00:05:00"/></div>
+          <div><label>Category</label><input type="text" id="na-cat-onboarding" placeholder="General"/></div>
+          <div style="display:flex;align-items:flex-end"><button class="bsm green" onclick="addAct('onboarding')">+ Add</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VERSION HISTORY -->
+  <div id="panel-history" class="panel">
+
+    <!-- CLEANUP CARD -->
+    <div class="cleanup-card">
+      <div class="cleanup-header">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--text);margin-bottom:3px">🗑️ Cleanup Old Logs</div>
+          <div style="font-size:.71rem;color:var(--muted)">Permanently deletes activity logs older than 90 days from both teams. Cannot be undone.</div>
+        </div>
+        <button class="bsm" id="scan-btn" onclick="scanOldLogs()" style="white-space:nowrap;border-color:var(--warn);color:var(--warn)">🔍 Scan Old Logs</button>
+      </div>
+
+      <!-- SCAN RESULTS (hidden until scan runs) -->
+      <div id="cleanup-results" style="display:none;margin-top:14px;">
+        <div class="cleanup-stats" id="cleanup-stats-row"></div>
+        <div id="cleanup-preview" style="margin-top:10px;max-height:220px;overflow-y:auto;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:10px 14px;font-size:.69rem;"></div>
+        <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+          <button class="bsm red" id="confirm-cleanup-btn" onclick="runCleanup()" style="font-size:.75rem;padding:8px 18px;">🗑️ Delete All Listed Logs</button>
+          <button class="bsm" onclick="cancelScan()" style="font-size:.73rem">Cancel</button>
+          <span id="cleanup-progress" style="font-size:.68rem;color:var(--muted)"></span>
+        </div>
+      </div>
+
+      <!-- NOTHING TO CLEAN -->
+      <div id="cleanup-clean" style="display:none;margin-top:12px;background:rgba(0,229,160,.06);border:1px solid rgba(0,229,160,.2);border-radius:8px;padding:10px 14px;font-size:.72rem;color:var(--accent)">
+        ✅ No logs older than 90 days found. Database is clean!
+      </div>
+    </div>
+
+    <!-- CHANGE LOG -->
+    <div class="twrap">
+      <div class="mh"><span class="stitle">Change Log</span><button class="bsm red" onclick="clearHist()">Clear</button></div>
+      <div style="padding:13px 16px;max-height:600px;overflow-y:auto" id="hist-list"><div class="empty"><h3>No changes yet</h3></div></div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-bg" id="edit-modal">
+  <div class="modal">
+    <h3>✎ Edit Activity</h3>
+    <div class="modal-sub" id="edit-sub"></div>
+    <div style="margin-bottom:10px;font-size:.65rem;color:var(--muted)">Team: <span id="edit-team-label" style="color:var(--accent)"></span></div>
+    <div class="modal-grid">
+      <div style="grid-column:1/-1"><label>Activity Name</label><input type="text" id="e-name"/></div>
+      <div><label>AHT / SLA Time (HH:MM:SS)</label><input type="text" id="e-aht" placeholder="00:05:00"/></div>
+      <div><label>Category</label><input type="text" id="e-cat" placeholder="e.g. Compliance"/></div>
+    </div>
+    <div class="modal-btns">
+      <button class="bsm" onclick="closeModal()">Cancel</button>
+      <button class="bsm green" onclick="saveModal()">✓ Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const FB={apiKey:"AIzaSyD2Mn6TRxTs1umzd1MDvurt3FkVeD1vVho",authDomain:"activity-tracker-40c7a.firebaseapp.com",databaseURL:"https://activity-tracker-40c7a-default-rtdb.firebaseio.com",projectId:"activity-tracker-40c7a",storageBucket:"activity-tracker-40c7a.firebasestorage.app",messagingSenderId:"126687788390",appId:"1:126687788390:web:36e66214b0137f78395ca7"};
+firebase.initializeApp(FB);
+const db=firebase.database();
+
+const ROLE='manager';
+const ALL_TEAMS=['hrops', 'onboarding'];
+let viewTeam='hrops'; // active view filter (manager can switch)
+
+let allData={}, SLA_HOURS=8, SLA_SEC=8*3600, mListenerOn=false, currentUser=null, approvalSettingsByTeam={hrops:{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC},onboarding:{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC}};
+let actsDataHrops=[], actsDataOnboarding=[], sortFld='name', sortDir=1, editIdx=-1, editTeam='hrops';
+let summaryTickIv=null, perfTickIv=null;
+
+const pad=n=>String(n).padStart(2,'0');
+const hms=s=>{s=Math.max(0,s);return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60);};
+const san=s=>s.replace(/[.#\$[\]/\s]/g,'_');
+const ini=n=>n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+const estNow=()=>new Date().toLocaleString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'America/New_York'});
+const h2s=h=>{const p=(h||'').split(':');return parseInt(p[0]||0)*3600+parseInt(p[1]||0)*60+parseInt(p[2]||0);};
+function getActsData(team){return team==='hrops'?actsDataHrops:actsDataOnboarding;}
+
+// Get filtered allData entries based on current viewTeam
+function getFilteredData(){
+  if(viewTeam==='both') return Object.entries(allData);
+  return Object.entries(allData).filter(([,a])=>a.team===viewTeam);
+}
+
+function switchTeamBtn(team){
+  viewTeam=team;
+  document.querySelectorAll('.team-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tbtn-'+team).classList.add('active');
+  updateTopStats();renderDetail();renderSummary();renderTop();renderLow();updateMgrPill();rebuildCatFilter();
+}
+
+
+// ✅ SMART AUTO MIGRATION (ADDED)
+function detectTeamFromLogs(associate) {
+  if (!associate.logs || !associate.logs.length) return "hrops";
+  let hropsScore = 0, onboardingScore = 0;
+
+  associate.logs.forEach(log => {
+    const activity = (log.activity || "").toLowerCase();
+    const category = (log.category || "").toLowerCase();
+
+    if (activity.includes("compliance") || activity.includes("audit") || activity.includes("termination") || category.includes("hr ops") || category.includes("internal audit")) {
+      hropsScore++;
+    }
+
+    if (activity.includes("onboarding") || activity.includes("paperwork") || activity.includes("bg") || category.includes("onboarding")) {
+      onboardingScore++;
+    }
+  });
+
+  return onboardingScore > hropsScore ? "onboarding" : "hrops";
+}
+
+async function autoMigrateDataSmart() {
+  const migratedRef = db.ref('migration/smart_done');
+  const migratedSnap = await migratedRef.once('value');
+  if (migratedSnap.val()) return;
+
+  const snap = await db.ref('associates').once('value');
+  if (!snap.exists()) return;
+
+  const updates = {};
+  const data = snap.val();
+
+  Object.entries(data).forEach(([key, value]) => {
+    const team = detectTeamFromLogs(value);
+    updates[team + "/associates/" + key] = value;
+  });
+
+  await db.ref().update(updates);
+  await migratedRef.set(true);
+  console.log("✅ Smart migration completed");
+}
+
+
+window.onload=function(){
+  currentUser=atRequire(['manager']);
+  if(!currentUser)return;
+  autoMigrateDataSmart();
+  setInterval(()=>{document.getElementById('clock').textContent=estNow()+' EST';},1000);
+  document.getElementById('eod-date').value=today();
+  document.getElementById('s-date').value=today();
+  setDP('today');
+  autoMigrateOldData(); // silently migrate old data on every load
+  fetchAll();loadSettings();loadActs();
+  setInterval(()=>{renderDetail();updateTopStats();updateMgrPill();},10000);
+};
+
+// ── Auto Migrate Old Data on Load (silent) ───────────────
+const HROPS_NAMES=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
+const OB_NAMES=['Aathirai Arumugam','Annie Hronec','Caio Silva','Cheyselle Cuaresma','Hanna Mae Ontong Pagdato','Karen Rodriguez','Luv Arora','Pooja Tripathi','Shubham Shyam','Sofia Romjin Orial','Sunil Kumar Muniraj','Victoria Isabel Busaco','Victoria Sousa'];
+
+async function autoMigrateOldData(){
+  try{
+    // Check if old associates/ path has any data
+    const snap=await db.ref('associates').once('value');
+    const oldData=snap.val();
+    if(!oldData){return;} // nothing to migrate
+
+    let migrated=0;
+    for(const [key,data] of Object.entries(oldData)){
+      const name=(data.meta&&data.meta.name)||key.replace(/_/g,' ');
+      // Determine team by name match
+      let team='hrops';
+      if(OB_NAMES.some(n=>n.toLowerCase()===name.toLowerCase())) team='onboarding';
+
+      const newPath=team+'/associates/'+key;
+
+      // Copy logs if they exist
+      if(data.logs){
+        const existingSnap=await db.ref(newPath+'/logs').once('value');
+        const existingLogs=existingSnap.val()||{};
+        for(const [logKey,log] of Object.entries(data.logs)){
+          if(!existingLogs[logKey]){ // only copy if not already there
+            await db.ref(newPath+'/logs/'+logKey).set({...log,team});
+            migrated++;
+          }
+        }
+      }
+      // Copy meta
+      if(data.meta) await db.ref(newPath+'/meta').set({...data.meta,team});
+      // Copy active session if present
+      if(data.active) await db.ref(newPath+'/active').set({...data.active,team});
+    }
+
+    if(migrated>0){
+      console.log(`Auto-migrated ${migrated} old log entries to team paths`);
+      // Refresh data after migration
+      fetchAll();
+    }
+  }catch(e){
+    console.log('Auto-migration skipped:',e.message);
+  }
+}
+
+// ── Firebase ──────────────────────────────────────────────
+let prevActive=new Set();
+function fetchAll(){
+  ALL_TEAMS.forEach(team=>{
+    db.ref(team+'/associates').on('value',snap=>{
+      const raw=snap.val()||{};
+      Object.entries(raw).forEach(([k,v])=>{
+        const meta=v.meta||{};
+        const name=meta.name||k.replace(/_/g,' ');
+        const key=team+'::'+name;
+        allData[key]={meta,logs:v.logs?Object.entries(v.logs).map(([lk,lv])=>({...lv,_key:lk,_path:team+'/associates/'+k+'/logs/'+lk})):[],active:v.active||null,team,displayName:name};
+        if(v.active) prevActive.add(key);
+      });
+      updateTopStats();renderDetail();renderSummary();renderTop();renderLow();updateMgrPill();
+    });
+  });
+}
+
+function loadSettings(){
+  ALL_TEAMS.forEach(team=>{
+    db.ref(team+'/settings/sla').on('value',s=>{
+      const h=s.val()||8;
+      if(team===ALL_TEAMS[0]){ SLA_HOURS=h;SLA_SEC=h*3600; }
+      const el=document.getElementById('sla-h-'+team);
+      const cur=document.getElementById('sla-cur-'+team);
+      if(el)el.value=h; if(cur)cur.textContent=h+' hours';
+    });
+    atLoadApprovalSettings(db,team,s=>{approvalSettingsByTeam[team]=s;updateApprovalToggle(team);renderDetail();});
+    db.ref(team+'/settings/privacy').on('value',s=>{
+      const v=s.val()||'open';
+      const el=document.getElementById('priv-mode-'+team);
+      const cur=document.getElementById('priv-cur-'+team);
+      if(el)el.value=v; if(cur)cur.textContent=v==='open'?'Open':'Restricted';
+    });
+  });
+}
+
+function loadActs(){
+  const HROPS_DEF=[
+    {name:"Compliance Mailbox",aht:300,category:"Compliance"},{name:"Initiating Onboarding",aht:600,category:"Compliance"},
+    {name:"Client system audit",aht:120,category:"Compliance"},{name:"BG Final Clearance",aht:1200,category:"Final Clearance"},
+    {name:"Adverse action/Audit",aht:900,category:"Compliance"},{name:"License verification audit",aht:2700,category:"Final Clearance"},
+    {name:"BG Pending audit & follow ups",aht:600,category:"Final Clearance"},{name:"UHG Monthly checks",aht:600,category:"Compliance"},
+    {name:"Luxottica Monthly checks",aht:600,category:"Compliance"},{name:"UHG & Luxottica Cross audit",aht:600,category:"Final Clearance"},
+    {name:"DEI - Amazon",aht:600,category:"Compliance"},{name:"Offboarding task - HSBC Meta & Airbnb",aht:600,category:"Compliance"},
+    {name:"Supplier Audit requests",aht:2700,category:"Final Clearance"},{name:"Securian & Cencora yearly checks",aht:1200,category:"Compliance"},
+    {name:"JD Notes",aht:600,category:"Compliance"},{name:"Daily Compliance EOD report",aht:600,category:"Compliance"},
+    {name:"Onboarding Paperwork Clearance",aht:1200,category:"Compliance"},{name:"HR Ops mailbox",aht:300,category:"HR Ops"},
+    {name:"Start and end date followups",aht:900,category:"HR Ops"},{name:"End Date Past Report",aht:900,category:"Internal Audit"},
+    {name:"Missing timecards",aht:1200,category:"HR Ops"},{name:"Visa audit & follow ups",aht:600,category:"Internal Audit"},
+    {name:"Data Changes & P3 tickets",aht:1200,category:"HR Ops"},{name:"Terminations",aht:600,category:"HR Ops"},
+    {name:"Extensions",aht:300,category:"HR Ops"},{name:"Tenure discount processing & audit",aht:7200,category:"HR Ops"},
+    {name:"401 K request",aht:600,category:"HR Ops"},{name:"CA Task force Summary / Follow up",aht:1800,category:"HR Ops"},
+    {name:"Kronos PIN Creation",aht:600,category:"HR Ops"},{name:"Paperwork Consolidation",aht:1800,category:"Compliance"},
+    {name:"VMS Creation",aht:300,category:"Compliance"},{name:"VMS - Time approver & Client creation",aht:300,category:"Compliance"},
+    {name:"E-verification",aht:300,category:"Compliance"},{name:"VMS Audit - Expired/Onboarding Status",aht:1200,category:"Internal Audit"},
+    {name:"Paperwork Audit NH & RH",aht:1800,category:"Internal Audit"},{name:"Data change Audit",aht:900,category:"Internal Audit"},
+    {name:"Termination Audit",aht:2700,category:"Internal Audit"},{name:"Jobdiva Audit",aht:5400,category:"Internal Audit"},
+    {name:"Min Wage Audit",aht:3600,category:"Internal Audit"},{name:"Mark up Audit",aht:2700,category:"Internal Audit"},
+    {name:"Everification Audit",aht:900,category:"Internal Audit"},{name:"P3 Clean up activity",aht:900,category:"HR Ops"},
+    {name:"Tenure Discount Audit",aht:1800,category:"Internal Audit"},{name:"NH/BG pending follow ups",aht:3600,category:"Compliance"},
+    {name:"FLSA Audit",aht:900,category:"Internal Audit"},{name:"No Start Audit",aht:900,category:"Internal Audit"},
+    {name:"Visa Audit",aht:600,category:"Internal Audit"},{name:"SF Ordinance - HCO Waiver",aht:1200,category:"Internal Audit"},
+    {name:"Ad-hoc Activities",aht:900,category:"HR Ops"},{name:"Daily Huddle",aht:1800,category:"HR Ops"},
+    {name:"Paperwork Work allocation",aht:300,category:"HR Ops"}
+  ];
+  const OB_DEF=[
+    {name:"Email Response",aht:300,category:"General"},{name:"Onboarding Tracker Update",aht:300,category:"General"},
+    {name:"Candidate Touchpoints",aht:900,category:"General"},{name:"Jobdiva Notes",aht:300,category:"General"},
+    {name:"Joddiva Assignment Audit",aht:300,category:"General"},{name:"Business Team Meeting",aht:1800,category:"General"},
+    {name:"Ad-hoc Activities",aht:900,category:"General"},{name:"Onboarding Review Call",aht:1800,category:"General"}
+  ];
+  db.ref('hrops/activities').on('value',s=>{actsDataHrops=s.val()||HROPS_DEF;if(document.getElementById('act-list-hrops'))renderActsList('hrops');rebuildCatFilter();});
+  db.ref('onboarding/activities').on('value',s=>{actsDataOnboarding=s.val()||OB_DEF;if(document.getElementById('act-list-onboarding'))renderActsList('onboarding');rebuildCatFilter();});
+}
+
+function rebuildCatFilter(){
+  const sel=document.getElementById('f-cat');if(!sel)return;
+  const cur=sel.value;
+  let cats=[];
+  const teamsToShow=viewTeam==='both'?['hrops','onboarding']:[viewTeam];
+  teamsToShow.forEach(t=>{
+    getActsData(t).forEach(a=>{if(a.category&&!cats.includes(a.category))cats.push(a.category);});
+  });
+  cats.sort();
+  sel.innerHTML='<option value="all">All Categories</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  if([...sel.options].some(o=>o.value===cur))sel.value=cur;
+}
+
+function getSLAForTeam(team){
+  // Use SLA_SEC (loaded from first team) — manager can set per-team via settings tab
+  return SLA_SEC;
+}
+
+// ── Top Stats ─────────────────────────────────────────────
+function updateTopStats(){
+  const t=today();let active=0,acts=0,sec=0,cnt=0,met=0,below=0;
+  getFilteredData().forEach(([,a])=>{
+    if(a.active)active++;
+    const tLogs=a.logs.filter(l=>l.date===t);acts+=tLogs.length;
+    const s=tLogs.reduce((x,e)=>x+(e.totalTimeSec||0),0);
+    const c=tLogs.reduce((x,e)=>x+(e.count||0),0);
+    sec+=s;cnt+=c;
+    if(tLogs.length>0){if(s>=SLA_SEC)met++;else below++;}
+  });
+  document.getElementById('st-active').textContent=active;
+  document.getElementById('st-acts').textContent=acts;
+  document.getElementById('st-aht').textContent=cnt>0?hms(Math.round(sec/cnt)):'—';
+  document.getElementById('st-met').textContent=met;
+  document.getElementById('st-below').textContent=below;
+  document.getElementById('st-tot').textContent=hms(sec);
+}
+
+// ── Mgr Pill ──────────────────────────────────────────────
+function updateMgrPill(){
+  const pill=document.getElementById('mgr-pill'),dot=document.getElementById('mgr-dot'),pn=document.getElementById('mgr-pname'),pc=document.getElementById('mgr-pcount');
+  const active=getFilteredData().filter(([,a])=>a.active);
+  if(active.length){
+    pill.className='pill';dot.className='pdot';
+    pn.textContent=active.length+' active: '+active.slice(0,3).map(([,a])=>a.displayName.split(' ')[0]).join(', ')+(active.length>3?'…':'');
+    pc.textContent='';
+  }else{pill.className='pill idle';dot.className='pdot idle';pn.textContent='No one active';pc.textContent='';}
+}
+
+// ── Detail Log ────────────────────────────────────────────
+function getRows(){
+  const nm=(document.getElementById('s-name')?.value||'').toLowerCase();
+  const cat=document.getElementById('f-cat')?.value||'all';
+  const sla=document.getElementById('f-sla')?.value||'all';
+  const stat=document.getElementById('f-stat')?.value||'all';
+  const dFrom=document.getElementById('d-from')?.value||today();
+  const dTo=document.getElementById('d-to')?.value||today();
+  let rows=[];
+  getFilteredData().forEach(([key,a])=>{
+    if(nm&&!a.displayName.toLowerCase().includes(nm))return;
+    const isToday=!dFrom||dFrom===today();
+    if(a.active&&isToday){
+      const r={...a.active,_n:a.displayName,_team:a.team,_run:true,_aSec:0};
+      r._aSec=Math.floor((Date.now()-a.active.startTs)/1000)+a.logs.filter(l=>l.date===today()).reduce((s,e)=>s+(e.totalTimeSec||0),0);
+      if((cat==='all'||r.category===cat)&&(sla==='all')&&(stat==='all'||stat==='running'))rows.push(r);
+    }
+    a.logs.forEach(e=>{
+      const d=e.date||today();if(d<dFrom||d>dTo)return;
+      if(nm&&!a.displayName.toLowerCase().includes(nm))return;
+      if(cat!=='all'&&e.category!==cat)return;
+      const totSec=a.logs.filter(l=>(l.date||today())===d).reduce((s,x)=>s+(x.totalTimeSec||0),0);
+      const slaOK=totSec>=SLA_SEC;
+      if(sla==='met'&&!slaOK)return;if(sla==='below'&&slaOK)return;
+      if(stat==='running')return;
+      rows.push({...e,_n:a.displayName,_team:a.team,_run:false,_aSec:totSec});
+    });
+  });
+  rows.sort((a,b)=>sortDir*(sortFld==='time'?(b._run?Math.floor((Date.now()-b.startTs)/1000):(b.totalTimeSec||0))-(a._run?Math.floor((Date.now()-a.startTs)/1000):(a.totalTimeSec||0)):a._n.localeCompare(b._n)));
+  return rows;
+}
+
+function renderDetail(){
+  const rows=getRows();
+  const tbody=document.getElementById('detail-body');
+  if(!rows.length){tbody.innerHTML='<tr><td colspan="12"><div class="empty"><h3>No data</h3></div></td></tr>';return;}
+  const teamLabel=t=>t==='hrops'?'<span style="font-size:.6rem;background:rgba(0,136,255,.12);color:var(--a2);padding:1px 5px;border-radius:3px">HR Ops</span>':'<span style="font-size:.6rem;background:rgba(168,85,247,.12);color:var(--purple);padding:1px 5px;border-radius:3px">Onboarding</span>';
+  tbody.innerHTML=rows.map(r=>{
+    const e=r._run?Math.floor((Date.now()-r.startTs)/1000):(r.totalTimeSec||0);
+    const slaOK=r._aSec>=SLA_SEC;
+    const cmnt=r.comments?`<span style="color:var(--muted);font-size:.63rem" title="${r.comments}">💬 ${r.comments.length>18?r.comments.slice(0,18)+'…':r.comments}</span>`:'—';
+    const ts=atTaskStatus(r,e,approvalSettingsByTeam[r._team]||approvalSettingsByTeam.hrops);
+    return `<tr><td style="font-weight:500">${r._n}</td><td>${teamLabel(r._team)}</td><td>${r.activity}</td><td style="font-size:.62rem;color:var(--muted)">${r.category||'—'}</td><td style="font-size:.62rem">${r.date||'—'}</td><td>${r.startTime||'—'}</td><td>${r._run?'<span class="rbadge2"><span class="blink">●</span> LIVE</span>':r.endTime||'—'}</td><td>${r.count||0}</td><td style="font-weight:500">${hms(e)}</td><td>${r.count>0?hms(Math.round(e/r.count)):'—'}</td><td>${cmnt}</td><td class="${ts.cls}">${ts.text}</td></tr>`;
+  }).join('');
+}
+
+function sortBy(f){sortFld=f==='name'?'name':'time';sortDir*=-1;renderDetail();}
+function setDP(p){
+  const t=today(),now=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  let from=t;
+  if(p==='week'){const d=new Date(now);d.setDate(d.getDate()-7);from=d.toISOString().slice(0,10);}
+  else if(p==='month'){from=t.slice(0,7)+'-01';}
+  else if(p==='all'){from='2024-01-01';}
+  document.getElementById('d-from').value=from;document.getElementById('d-to').value=t;
+  ['today','week','month','all'].forEach(x=>document.getElementById('dp-'+x)?.classList.toggle('ap',x===p));
+  renderDetail();
+}
+function clearPresets(){['today','week','month','all'].forEach(x=>{const el=document.getElementById('dp-'+x);if(el)el.classList.remove('ap');});}
+
+// ── Summary ───────────────────────────────────────────────
+function renderSummary(){
+  const srt=document.getElementById('s-sort')?.value||'name';
+  const fd=document.getElementById('s-date')?.value||today();
+  const grid=document.getElementById('sum-grid');
+  const ents=getFilteredData();
+  if(!ents.length){grid.innerHTML='<div class="empty"><h3>No data yet</h3></div>';return;}
+  const isToday=!fd||fd===today();
+  let cards=ents.map(([key,a])=>{
+    const logs=a.logs.filter(l=>l.date===fd);
+    const cSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+    const aSec=a.active&&isToday&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const tSec=cSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
+    const aht=cnt>0?hms(Math.round(cSec/cnt)):'—',ok=tSec>=SLA_SEC;
+    return{name:a.displayName,team:a.team,tSec,cSec,aSec,cnt,aht,ok,def:tSec-SLA_SEC,active:isToday?a.active:null,logs};
+  });
+  if(srt==='high')cards.sort((a,b)=>b.tSec-a.tSec);
+  else if(srt==='low')cards.sort((a,b)=>a.tSec-b.tSec);
+  else cards.sort((a,b)=>a.name.localeCompare(b.name));
+  const teamTag=t=>t==='hrops'?'<span class="team-tag hrops-tag">HR Ops</span>':'<span class="team-tag ob-tag">Onboarding</span>';
+  grid.innerHTML=cards.map(c=>{
+    const sn=c.name.replace(/[^a-z0-9]/gi,'_');
+    return `<div class="pc ${c.ok?'top':'low'}" id="scard-${sn}">
+      <div class="ph"><div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="pn">${c.name}</div>
+          ${c.active?'<span class="live-chip"><span class="blink">●</span> LIVE</span>':''}
+        </div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:3px">${teamTag(c.team)}<div style="font-size:.6rem;color:var(--muted)">${c.logs.length} activities</div></div>
+      </div>
+      <div class="pt ${c.ok?'tg':'tr'}" id="stot-${sn}">${hms(c.tSec)}</div></div>
+      <div class="ps">
+        <div class="ms"><div class="ml">Deficit/Surplus</div><div class="mv ${c.def>=0?'tg':'tr'}" id="sdef-${sn}">${(c.def>=0?'+':'-')+hms(Math.abs(c.def))}</div></div>
+        <div class="ms"><div class="ml">Transactions</div><div class="mv">${c.cnt}</div></div>
+        <div class="ms"><div class="ml">AHT</div><div class="mv">${c.aht}</div></div>
+        <div class="ms"><div class="ml">SLA</div><div class="mv ${c.ok?'tg':'tr'}" id="ssla-${sn}">${c.ok?'✓ Met':'✗ Below'}</div></div>
+      </div>
+      ${c.active?`<div class="live-act-bar" id="sact-${sn}"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="selapsed-${sn}">${hms(c.aSec)}</span></div>`:''}
+    </div>`;
+  }).join('');
+  startSummaryTick();
+}
+
+// ── Top & Low Performers ──────────────────────────────────
+function getPerfScores(period){
+  const t=today(),now=new Date(new Date().toLocaleString('en-US',{timeZone:'America/New_York'}));
+  const isToday=period==='today';
+  return getFilteredData().map(([key,a])=>{
+    let logs=a.logs;
+    if(period==='today')logs=logs.filter(l=>l.date===t);
+    else if(period==='week'){const d=new Date(now);d.setDate(d.getDate()-7);logs=logs.filter(l=>l.date>=d.toISOString().slice(0,10));}
+    else if(period==='month')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,7)));
+    else if(period==='year')logs=logs.filter(l=>l.date?.startsWith(t.slice(0,4)));
+    const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+    const aSec=isToday&&a.active&&a.active.startTs?Math.floor((Date.now()-a.active.startTs)/1000):0;
+    const tSec=doneSec+aSec,cnt=logs.reduce((s,e)=>s+(e.count||0),0);
+    return{name:a.displayName,team:a.team,tSec,cnt,ok:tSec>=SLA_SEC,lc:logs.length,active:isToday?a.active:null,aSec};
+  }).filter(s=>s.lc>0||(s.active));
+}
+function renderTop(){
+  const period=document.getElementById('top-period')?.value||'today';
+  const scores=getPerfScores(period).sort((a,b)=>b.tSec-a.tSec);
+  const grid=document.getElementById('top-grid');
+  if(!scores.length){grid.innerHTML='<div class="empty"><h3>No data for selected period</h3></div>';return;}
+  grid.innerHTML=scores.slice(0,10).map((s,i)=>perfCard(s,i+1,'top')).join('');
+  startPerfTick('top');
+}
+function renderLow(){
+  const period=document.getElementById('low-period')?.value||'today';
+  const scores=getPerfScores(period).sort((a,b)=>a.tSec-b.tSec);
+  const grid=document.getElementById('low-grid');
+  if(!scores.length){grid.innerHTML='<div class="empty"><h3>No data for selected period</h3></div>';return;}
+  grid.innerHTML=scores.slice(0,10).map((s,i)=>perfCard(s,i+1,'low')).join('');
+  startPerfTick('low');
+}
+function perfCard(s,rank,type){
+  const sn=s.name.replace(/[^a-z0-9]/gi,'_')+'_'+type;
+  const teamTag=s.team==='hrops'?'<span class="team-tag hrops-tag">HR Ops</span>':'<span class="team-tag ob-tag">Onboarding</span>';
+  return `<div class="pc ${type==='top'?'top':'low'}">
+    <div class="ph"><div>
+      <div class="rn">#${rank}</div>
+      <div style="display:flex;align-items:center;gap:6px"><div class="pn">${s.name}</div>${s.active?'<span class="live-chip"><span class="blink">●</span> LIVE</span>':''}</div>
+      <div style="margin-top:3px">${teamTag}</div>
+    </div>
+    <div class="pt ${s.ok?'tg':'tr'}" id="ptot-${sn}">${hms(s.tSec)}</div></div>
+    <div class="ps">
+      <div class="ms"><div class="ml">Activities</div><div class="mv">${s.lc}</div></div>
+      <div class="ms"><div class="ml">Transactions</div><div class="mv">${s.cnt}</div></div>
+      <div class="ms"><div class="ml">SLA</div><div class="mv ${s.ok?'tg':'tr'}" id="psla-${sn}">${s.ok?'✓ Met':'✗ Below'}</div></div>
+      <div class="ms"><div class="ml">Status</div><div class="mv">${type==='top'?'⭐ Top':'⚠ Low'}</div></div>
+    </div>
+    ${s.active?`<div class="live-act-bar"><div style="display:flex;align-items:center;gap:6px;flex:1;min-width:0"><span style="color:var(--accent)">▶</span><span style="font-size:.68rem;color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${s.active.activity}</span></div><span style="font-family:'Syne',sans-serif;font-weight:700;font-size:.72rem;color:var(--accent);white-space:nowrap" id="pelapsed-${sn}">${hms(s.aSec)}</span></div>`:''}
+  </div>`;
+}
+
+// ── Live ticks ────────────────────────────────────────────
+function startSummaryTick(){
+  clearInterval(summaryTickIv);
+  const isToday=!document.getElementById('s-date')?.value||document.getElementById('s-date').value===today();
+  if(!isToday)return;
+  summaryTickIv=setInterval(()=>{
+    getFilteredData().forEach(([key,a])=>{
+      if(!a.active)return;
+      const sn=a.displayName.replace(/[^a-z0-9]/gi,'_');
+      if(!a.active.startTs)return;
+      const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
+      const logs=a.logs.filter(l=>l.date===today());
+      const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+      const tSec=doneSec+aSec,ok=tSec>=SLA_SEC,def=tSec-SLA_SEC;
+      const t=document.getElementById('stot-'+sn);if(t){t.textContent=hms(tSec);t.className='pt '+(ok?'tg':'tr');}
+      const e=document.getElementById('selapsed-'+sn);if(e)e.textContent=hms(aSec);
+      const d=document.getElementById('sdef-'+sn);if(d){d.textContent=(def>=0?'+':'-')+hms(Math.abs(def));d.className='mv '+(def>=0?'tg':'tr');}
+      const sl=document.getElementById('ssla-'+sn);if(sl){sl.textContent=ok?'✓ Met':'✗ Below';sl.className='mv '+(ok?'tg':'tr');}
+    });
+  },1000);
+}
+function startPerfTick(type){
+  clearInterval(perfTickIv);
+  const period=type==='top'?document.getElementById('top-period')?.value:document.getElementById('low-period')?.value;
+  if(period!=='today')return;
+  perfTickIv=setInterval(()=>{
+    getFilteredData().forEach(([key,a])=>{
+      if(!a.active)return;
+      const sn=a.displayName.replace(/[^a-z0-9]/gi,'_')+'_'+type;
+      const aSec=Math.floor((Date.now()-a.active.startTs)/1000);
+      const logs=a.logs.filter(l=>l.date===today());
+      const doneSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+      const tSec=doneSec+aSec,ok=tSec>=SLA_SEC;
+      const t=document.getElementById('ptot-'+sn);if(t){t.textContent=hms(tSec);t.className='pt '+(ok?'tg':'tr');}
+      const e=document.getElementById('pelapsed-'+sn);if(e)e.textContent=hms(aSec);
+      const sl=document.getElementById('psla-'+sn);if(sl){sl.textContent=ok?'✓ Met':'✗ Below';sl.className='mv '+(ok?'tg':'tr');}
+    });
+  },1000);
+}
+
+// ── EOD ───────────────────────────────────────────────────
+function genEOD(){
+  const dt=document.getElementById('eod-date').value||today();
+  const ents=getFilteredData().map(([key,a])=>{
+    const logs=a.logs.filter(l=>l.date===dt);
+    const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);
+    const cnt=logs.reduce((s,e)=>s+(e.count||0),0);
+    return{name:a.displayName,team:a.team,tSec,cnt,ok:tSec>=SLA_SEC,logs};
+  }).filter(e=>e.logs.length>0).sort((a,b)=>b.tSec-a.tSec);
+  if(!ents.length){document.getElementById('eod-txt').value='No data found for '+dt;return;}
+  const met=ents.filter(e=>e.ok).length;
+  const teamTot=ents.reduce((s,e)=>s+e.tSec,0);
+  let r=`PRODUCTIVITY EOD REPORT — ${dt}\n${('=').repeat(50)}\n\n`;
+  r+=`TEAM SUMMARY\n${('-').repeat(30)}\nTotal Productive Hours : ${hms(teamTot)}\nAssociates Tracked : ${ents.length}\nSLA Met (≥${SLA_HOURS}h) : ${met}\nBelow SLA : ${ents.length-met}\n\n`;
+  r+=`INDIVIDUAL BREAKDOWN\n${('-').repeat(30)}\n`;
+  ents.forEach(e=>{
+    r+=`\n[${e.team==='hrops'?'HR Ops':'Onboarding'}] ${e.name}\n  Total Time   : ${hms(e.tSec)}\n  Transactions : ${e.cnt}\n  Activities   : ${e.logs.length}\n  SLA Status   : ${e.ok?'✓ MET':'✗ BELOW'}\n`;
+    e.logs.forEach(l=>{r+=`    → ${l.activity} [${l.startTime||'?'}–${l.endTime||'running'}] ${hms(l.totalTimeSec)}\n`;});
+  });
+  r+=`\n${('=').repeat(50)}\nGenerated: ${estNow()} EST | Activity Tracker`;
+  document.getElementById('eod-txt').value=r;
+}
+function copyEOD(){const el=document.getElementById('eod-txt');navigator.clipboard.writeText(el.value).then(()=>alert('Copied!')).catch(()=>{el.select();document.execCommand('copy');alert('Copied!');});}
+
+// ── CSV ───────────────────────────────────────────────────
+function dlCSV(){
+  const rows=getRows();
+  let csv='Name,Team,Activity,Category,Date,Start (EST),End (EST),Count,Time Taken,AHT,Comments,SLA\n';
+  rows.forEach(r=>{
+    const e=r._run?Math.floor((Date.now()-r.startTs)/1000):(r.totalTimeSec||0);
+    const slaOK=r._aSec>=SLA_SEC;const cmnt=(r.comments||'').replace(/"/g,"'");
+    csv+=`"${r._n}","${r._team==='hrops'?'HR Ops':'Onboarding'}","${r.activity}","${r.category||''}","${r.date||''}","${r.startTime||''}","${r.endTime||'running'}",${r.count||0},${hms(e)},${r.count>0?hms(Math.round(e/r.count)):'—'},"${cmnt}",${slaOK?'Met':'Below'}\n`;
+  });
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='report_'+today()+'.csv';a.click();
+}
+function dlSummaryCSV(){
+  const fd=document.getElementById('s-date')?.value||today();
+  let csv='Name,Team,Date,Total Time,Transactions,Activities,AHT,SLA,Deficit/Surplus\n';
+  getFilteredData().forEach(([key,a])=>{
+    const logs=a.logs.filter(l=>l.date===fd);
+    const tSec=logs.reduce((s,e)=>s+(e.totalTimeSec||0),0);const cnt=logs.reduce((s,e)=>s+(e.count||0),0);
+    const ok=tSec>=SLA_SEC,def=tSec-SLA_SEC;
+    csv+=`"${a.displayName}","${a.team==='hrops'?'HR Ops':'Onboarding'}","${fd}",${hms(tSec)},${cnt},${logs.length},${cnt>0?hms(Math.round(tSec/cnt)):'—'},${ok?'Met':'Below'},${(def>=0?'+':'-')+hms(Math.abs(def))}\n`;
+  });
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'}));a.download='summary_'+fd+'.csv';a.click();
+}
+
+// ── Tab switching ─────────────────────────────────────────
+function sw(tab){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('tab-'+tab).classList.add('active');
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab!=='summary'){clearInterval(summaryTickIv);summaryTickIv=null;}
+  if(tab!=='top'&&tab!=='low'){clearInterval(perfTickIv);perfTickIv=null;}
+  if(tab==='team'&&!mListenerOn){mListenerOn=true;listenMembers();}
+  if(tab==='activities'){ALL_TEAMS.forEach(t=>renderActsList(t));}
+  if(tab==='history')loadHist();
+  if(tab==='top')renderTop();
+  if(tab==='low')renderLow();
+  if(tab==='summary')renderSummary();
+}
+
+
+// ── Team Mgmt ─────────────────────────────────────────────
+function listenMembers(){
+  ALL_TEAMS.forEach(team=>{
+    db.ref(team+'/team/members').on('value',snap=>{
+      const d=snap.val()||{};const names=Object.entries(d);
+      const cnt=document.getElementById('m-count-'+team);
+      const list=document.getElementById('m-list-'+team);
+      if(cnt)cnt.textContent=names.length+' members';
+      if(!list)return;
+      if(!names.length){list.innerHTML='<div style="color:var(--muted);font-size:.74rem;padding:8px 0">No members yet.</div>';return;}
+      list.innerHTML=names.map(([k,n])=>`<div class="mrow"><div class="mi"><div class="av">${ini(n)}</div><span style="font-size:.78rem">${n}</span></div><button class="rmbtn" onclick="rmMember('${team}','${k}','${n.replace(/'/g,"\'")}')">Remove</button></div>`).join('');
+    });
+  });
+}
+function addMember(team){
+  const inp=document.getElementById('new-m-'+team);const name=inp.value.trim();if(!name)return;
+  db.ref(team+'/team/members').push(name).then(()=>{inp.value='';logVer('Manager','Added member to '+team+': '+name);}).catch(e=>alert('Error: '+e.message));
+}
+function rmMember(team,k,name){
+  if(!confirm('Remove '+name+'?'))return;
+  db.ref(team+'/team/members/'+k).remove().then(()=>logVer('Manager','Removed from '+team+': '+name));
+}
+
+function updateApprovalToggle(team){
+  const s=approvalSettingsByTeam[team]||{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC};
+  const b=document.getElementById('approval-toggle-'+team),cur=document.getElementById('approval-cur-'+team);
+  if(b)b.textContent=s.enabled?'Disable':'Enable';
+  if(cur)cur.textContent=(s.enabled?'Enabled':'Disabled')+' - Buffer: '+Math.round(s.bufferSec/60)+' minutes';
+}
+function saveApprovalToggle(team){
+  const s=approvalSettingsByTeam[team]||{enabled:true,bufferSec:AT_DEFAULT_BUFFER_SEC};
+  db.ref(team+'/settings/approval').set({enabled:!s.enabled,bufferMinutes:Math.round(s.bufferSec/60)||5,updatedBy:currentUser?.name||'Manager',updatedAt:Date.now()});
+}
+
+function saveSLA(team){
+  const h=parseInt(document.getElementById('sla-h-'+team).value)||8;
+  db.ref(team+'/settings/sla').set(h).then(()=>{
+    if(team===ALL_TEAMS[0]){SLA_HOURS=h;SLA_SEC=h*3600;}
+    document.getElementById('sla-cur-'+team).textContent=h+' hours';
+    logVer('Manager','SLA for '+team+' set to '+h+'h');alert('SLA updated: '+h+' hours');
+  });
+}
+function savePriv(team){
+  const v=document.getElementById('priv-mode-'+team).value;
+  db.ref(team+'/settings/privacy').set(v).then(()=>{
+    document.getElementById('priv-cur-'+team).textContent=v==='open'?'Open':'Restricted';
+    logVer('Manager','Privacy for '+team+': '+v);alert('Saved: '+v);
+  });
+}
+// ── Activities ────────────────────────────────────────────
+function renderActsList(team){
+  const data=getActsData(team);
+  const cnt=document.getElementById('act-cnt-'+team);const list=document.getElementById('act-list-'+team);
+  if(cnt)cnt.textContent=data.length+' activities';
+  if(!list)return;
+  const pad=n=>String(n).padStart(2,'0');
+  const hms=s=>{s=Math.max(0,s);return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60);};
+  list.innerHTML=data.map((a,i)=>`<div class="arow"><span style="font-size:.72rem">${a.name}</span><span style="color:var(--warn);font-size:.69rem">${hms(a.aht)}</span><span style="font-size:.62rem;color:var(--muted)">${a.category}</span><div style="display:flex;gap:5px"><button class="bsm" style="border-color:var(--warn);color:var(--warn);font-size:.63rem;padding:4px 9px" onclick="openModal('${team}',${i})">✎ Edit</button><button class="bsm red" style="font-size:.63rem;padding:4px 9px" onclick="delAct('${team}',${i})">✕</button></div></div>`).join('');
+}
+function addAct(team){
+  const name=document.getElementById('na-name-'+team).value.trim();
+  const ahtStr=document.getElementById('na-aht-'+team).value||'00:05:00';
+  const cat=document.getElementById('na-cat-'+team).value.trim()||'General';
+  if(!name){alert('Enter a name');return;}
+  const data=getActsData(team);
+  data.push({name,aht:h2s(ahtStr),category:cat});
+  db.ref(team+'/activities').set(data).then(()=>{
+    document.getElementById('na-name-'+team).value='';
+    document.getElementById('na-aht-'+team).value='';
+    renderActsList(team);logVer('Manager','Added activity to '+team+': '+name);
+  });
+}
+function delAct(team,i){
+  const data=getActsData(team);const name=data[i].name;
+  if(!confirm('Remove: '+name+'?'))return;
+  data.splice(i,1);
+  db.ref(team+'/activities').set(data).then(()=>{renderActsList(team);logVer('Manager','Removed from '+team+': '+name);});
+}
+function openModal(team,i){
+  editTeam=team;editIdx=i;
+  const a=getActsData(team)[i];
+  const pad=n=>String(n).padStart(2,'0');const hms=s=>{s=Math.max(0,s);return pad(Math.floor(s/3600))+':'+pad(Math.floor((s%3600)/60))+':'+pad(s%60);};
+  document.getElementById('edit-sub').textContent='Editing: '+a.name;
+  document.getElementById('edit-team-label').textContent=team==='hrops'?'HR Operations':'Onboarding';
+  document.getElementById('e-name').value=a.name;
+  document.getElementById('e-aht').value=hms(a.aht);
+  document.getElementById('e-cat').value=a.category;
+  document.getElementById('edit-modal').classList.add('open');
+}
+function closeModal(){document.getElementById('edit-modal').classList.remove('open');editIdx=-1;editTeam='hrops';}
+function saveModal(){
+  if(editIdx<0)return;
+  const name=document.getElementById('e-name').value.trim();
+  const ahtStr=document.getElementById('e-aht').value||'00:05:00';
+  const cat=document.getElementById('e-cat').value.trim()||'General';
+  if(!name){alert('Name cannot be empty');return;}
+  const data=getActsData(editTeam);const old=data[editIdx].name;
+  data[editIdx]={name,aht:h2s(ahtStr),category:cat};
+  db.ref(editTeam+'/activities').set(data).then(()=>{
+    renderActsList(editTeam);
+    logVer('Manager','Edited in '+editTeam+': '+old+' → '+name);closeModal();
+  }).catch(e=>alert('Save failed: '+e.message));
+}
+document.addEventListener('click',e=>{if(e.target.id==='edit-modal')closeModal();});
+// ── History ───────────────────────────────────────────────
+function logVer(who,what){db.ref('hrops/history').push({who,what,when:Date.now(),whenStr:estNow()+' EST'});}
+let histListenerOn=false;
+function loadHist(){
+  if(histListenerOn)return;histListenerOn=true;
+  db.ref('hrops/history').orderByChild('when').limitToLast(100).on('value',snap=>{
+    const d=snap.val();const list=document.getElementById('hist-list');
+    if(!d){list.innerHTML='<div class="empty"><h3>No changes yet</h3></div>';return;}
+    list.innerHTML=Object.values(d).reverse().map(e=>`<div class="vrow"><div class="vwho">${e.who}</div><div class="vwhat">${e.what}</div><div class="vwhen">${e.whenStr||new Date(e.when).toLocaleString()}</div></div>`).join('');
+  });
+}
+function clearHist(){if(!confirm('Clear history?'))return;db.ref('hrops/history').remove();}
+
+// ── Migrate Old Data (associates/ → hrops/associates/) ────
+async function migrateOldData(){
+  const btn=document.getElementById('migrate-btn');
+  const status=document.getElementById('migrate-status');
+  btn.disabled=true; btn.textContent='⏳ Migrating...';
+  status.style.display='block';
+  status.innerHTML='<span style="color:var(--muted)">Reading old data from associates/...</span>';
+
+  try{
+    // Read old root-level associates path
+    const snap=await db.ref('associates').once('value');
+    const oldData=snap.val();
+
+    if(!oldData){
+      status.innerHTML='<span style="color:var(--accent)">✅ No old data found at associates/ — nothing to migrate.</span>';
+      btn.disabled=false; btn.textContent='📦 Migrate Old Data';
+      return;
+    }
+
+    const names=Object.keys(oldData);
+    let migrated=0, skipped=0;
+
+    // Match each associate to their team based on hardcoded lists
+    const HROPS=['Alan Benjamin','Anubha Priyam','Archana Gautam','Aswani R','Hariharan A','Latha Shinde','Leonie Gomes','Pavithra Mahesh','Periya Robicca','Ramesh Kumar Selvaraj','Sayee Balasubramanian','Sneha Thomas','Thirisha Manoharan','Vinish Navinkumar','Arjun MP','Ingrid Pope','Banupriya Balakrishnan','Yogeshwaran Rajendran','Rihana Hussain','Rathina Sudhan','Azhar Taj'];
+    const ONBOARDING=['Aathirai Arumugam','Annie Hronec','Caio Silva','Cheyselle Cuaresma','Hanna Mae Ontong Pagdato','Karen Rodriguez','Luv Arora','Pooja Tripathi','Shubham Shyam','Sofia Romjin Orial','Sunil Kumar Muniraj','Victoria Isabel Busaco','Victoria Sousa'];
+
+    for(const [key, data] of Object.entries(oldData)){
+      const name=(data.meta&&data.meta.name)||key.replace(/_/g,' ');
+      // Determine team
+      let team=null;
+      if(HROPS.some(n=>n.toLowerCase()===name.toLowerCase())) team='hrops';
+      else if(ONBOARDING.some(n=>n.toLowerCase()===name.toLowerCase())) team='onboarding';
+      else team='hrops'; // default unknown to hrops
+
+      const newPath=team+'/associates/'+key;
+
+      // Check if already exists at new path
+      const existing=await db.ref(newPath+'/logs').once('value');
+
+      // Copy logs
+      if(data.logs){
+        const existingLogs=existing.val()||{};
+        const existingCount=Object.keys(existingLogs).length;
+        const newLogs=Object.entries(data.logs).filter(([k])=>!existingLogs[k]);
+        for(const [logKey,log] of newLogs){
+          await db.ref(newPath+'/logs/'+logKey).set({...log,team});
+        }
+      }
+      // Copy meta
+      if(data.meta) await db.ref(newPath+'/meta').set({...data.meta,team});
+
+      migrated++;
+      status.innerHTML=`<span style="color:var(--muted)">Migrating... ${migrated}/${names.length} associates</span>`;
+    }
+
+    status.innerHTML=`<span style="color:var(--accent)">✅ Migration complete! ${migrated} associates migrated to new team paths. Refresh the page to see your data.</span>`;
+    logVer('Manager',`Migrated old data: ${migrated} associates moved to team paths`);
+    showToast('✅ Migration complete! Refresh to see data.','var(--accent)');
+    btn.disabled=false; btn.textContent='📦 Migrate Old Data';
+
+  }catch(err){
+    status.innerHTML=`<span style="color:var(--red)">❌ Migration failed: ${err.message}</span>`;
+    btn.disabled=false; btn.textContent='📦 Migrate Old Data';
+  }
+}
+
+// ── Cleanup Old Logs ──────────────────────────────────────
+let cleanupData = []; // stores refs to delete after scan
+
+function getCutoffDate(){
+  const d = new Date();
+  d.setDate(d.getDate() - 90);
+  return d.toISOString().slice(0,10); // YYYY-MM-DD
+}
+
+async function scanOldLogs(){
+  const btn = document.getElementById('scan-btn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Scanning...';
+  document.getElementById('cleanup-results').style.display='none';
+  document.getElementById('cleanup-clean').style.display='none';
+  cleanupData = [];
+
+  const cutoff = getCutoffDate();
+  const teams = ['hrops','onboarding'];
+  let totalLogs = 0, totalSize = 0;
+  const preview = [];
+
+  try {
+    for(const team of teams){
+      const snap = await db.ref(team+'/associates').once('value');
+      const associates = snap.val();
+      if(!associates) continue;
+
+      for(const [assocKey, assocData] of Object.entries(associates)){
+        const logs = assocData.logs;
+        if(!logs) continue;
+        const name = (assocData.meta && assocData.meta.name) || assocKey.replace(/_/g,' ');
+        let countForAssoc = 0;
+
+        for(const [logKey, log] of Object.entries(logs)){
+          if(log.date && log.date < cutoff){
+            cleanupData.push({path: team+'/associates/'+assocKey+'/logs/'+logKey, date: log.date, name, team});
+            countForAssoc++;
+            totalLogs++;
+          }
+        }
+        if(countForAssoc > 0){
+          preview.push({name, team, count: countForAssoc});
+        }
+      }
+    }
+
+    btn.disabled = false;
+    btn.textContent = '🔍 Scan Old Logs';
+
+    if(totalLogs === 0){
+      document.getElementById('cleanup-clean').style.display='block';
+      return;
+    }
+
+    // Build stats row
+    const hropsCount = cleanupData.filter(x=>x.team==='hrops').length;
+    const obCount    = cleanupData.filter(x=>x.team==='onboarding').length;
+    const oldestDate = cleanupData.reduce((m,x)=>x.date<m?x.date:m, cutoff);
+
+    document.getElementById('cleanup-stats-row').innerHTML=`
+      <div class="cs-box"><div class="cs-label">Logs to Delete</div><div class="cs-val red">${totalLogs}</div></div>
+      <div class="cs-box"><div class="cs-label">HR Ops Logs</div><div class="cs-val warn">${hropsCount}</div></div>
+      <div class="cs-box"><div class="cs-label">Onboarding Logs</div><div class="cs-val warn">${obCount}</div></div>
+      <div class="cs-box"><div class="cs-label">Older Than</div><div class="cs-val ok">${cutoff}</div></div>
+      <div class="cs-box"><div class="cs-label">Oldest Entry</div><div class="cs-val" style="color:var(--muted);font-size:.85rem">${oldestDate}</div></div>
+    `;
+
+    // Build preview list
+    document.getElementById('cleanup-preview').innerHTML =
+      '<div style="color:var(--warn);font-weight:600;margin-bottom:7px;font-size:.7rem">Associates with logs to be deleted:</div>' +
+      preview.map(p=>`
+        <div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+          <span>${p.name} <span style="font-size:.6rem;color:${p.team==='hrops'?'var(--a2)':'var(--purple)'}">[${p.team==='hrops'?'HR Ops':'Onboarding'}]</span></span>
+          <span style="color:var(--red);font-weight:600">${p.count} logs</span>
+        </div>`).join('');
+
+    document.getElementById('cleanup-results').style.display='block';
+
+  } catch(err){
+    btn.disabled = false;
+    btn.textContent = '🔍 Scan Old Logs';
+    alert('Scan failed: '+err.message);
+  }
+}
+
+async function runCleanup(){
+  if(!cleanupData.length){alert('Nothing to delete. Run Scan first.');return;}
+  if(!confirm(`⚠️ This will permanently delete ${cleanupData.length} log entries older than 90 days.\n\nThis CANNOT be undone.\n\nAre you sure?`)) return;
+
+  const confirmBtn = document.getElementById('confirm-cleanup-btn');
+  const progress   = document.getElementById('cleanup-progress');
+  confirmBtn.disabled = true;
+  confirmBtn.textContent = '⏳ Deleting...';
+
+  let deleted = 0;
+  const total = cleanupData.length;
+  const BATCH = 50; // delete in batches to avoid overwhelming Firebase
+
+  try {
+    for(let i=0; i<cleanupData.length; i++){
+      await db.ref(cleanupData[i].path).remove();
+      deleted++;
+      if(deleted % BATCH === 0 || deleted === total){
+        progress.textContent = `Deleted ${deleted} / ${total} logs...`;
+        await new Promise(r=>setTimeout(r,100)); // small pause between batches
+      }
+    }
+
+    logVer('Manager', `Cleanup: deleted ${deleted} logs older than ${getCutoffDate()} from both teams`);
+    showToast(`✅ Cleanup complete — ${deleted} old logs deleted`, 'var(--accent)');
+    cleanupData = [];
+    document.getElementById('cleanup-results').style.display='none';
+    document.getElementById('cleanup-clean').style.display='block';
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '🗑️ Delete All Listed Logs';
+    progress.textContent = '';
+
+  } catch(err){
+    confirmBtn.disabled = false;
+    confirmBtn.textContent = '🗑️ Delete All Listed Logs';
+    progress.textContent = '';
+    alert('Cleanup failed at entry '+deleted+': '+err.message);
+  }
+}
+
+function cancelScan(){
+  cleanupData = [];
+  document.getElementById('cleanup-results').style.display='none';
+  document.getElementById('cleanup-clean').style.display='none';
+}
+
+// ── Toast ─────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg,color){
+  const c=color||'var(--accent)';
+  let t=document.getElementById('mgr-toast');
+  if(!t){t=document.createElement('div');t.id='mgr-toast';t.style.cssText='position:fixed;bottom:22px;right:22px;background:var(--card);border:1px solid;border-radius:9px;padding:10px 16px;font-size:.72rem;z-index:9999;box-shadow:0 8px 24px rgba(0,0,0,.5);display:flex;align-items:center;gap:8px;transition:opacity .4s,transform .4s;';t.innerHTML='<span style="width:7px;height:7px;border-radius:50%;flex-shrink:0;display:inline-block" id="mgr-tdot"></span><span id="mgr-tmsg"></span>';document.body.appendChild(t);}
+  t.style.borderColor=c;t.style.color=c;t.style.opacity='1';t.style.transform='translateY(0)';
+  document.getElementById('mgr-tdot').style.background=c;document.getElementById('mgr-tmsg').textContent=msg;
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>{t.style.opacity='0';t.style.transform='translateY(10px)';},3500);
+}
+</script>
+</body>
+</html>
